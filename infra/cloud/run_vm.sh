@@ -3,6 +3,10 @@
 set -eu
 task_root=$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)
 task_runtime=${DEVFLOW_RUNTIME_FILE:-/root/.config/devflow/runtime.env}
+task_state=$(dirname -- "$task_runtime")
+exec 9> "$task_state/service.lock"
+flock -n 9 || exit 0
+echo $$ > "$task_state/supervisor.pid"
 set -a
 . "$task_runtime"
 set +a
@@ -20,6 +24,7 @@ trap task_stop INT TERM
 while :; do
     .venv/bin/python infra/cloud/run_service.py &
     task_child=$!
+    echo "$task_child" > "$task_state/service.pid"
     wait "$task_child" || true
     task_child=''
     echo 'DevFlow exited; restarting in 5 seconds'
