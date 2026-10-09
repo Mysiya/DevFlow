@@ -39,4 +39,16 @@ setsid -f sh infra/cloud/run_vm.sh </dev/null >>/root/.config/devflow/service.lo
 
 `run_service.py` 管理 API、Worker 和 Next.js；只有 Next.js 监听公网端口 8080。公网认证与下载检查通过后才交付 APK。模型认证检查只访问官方 `/models`，没有发送聊天请求。
 
-外层守护处理应用进程退出，不提供跨 VM 睡眠或重启的启动保证。平台恢复时曾出现只剩 API、网页与 Worker 未运行的状态，已在空闲队列下停止经路径和命令核对的本项目 API，并以独立会话恢复完整服务。VM 睡眠、重启或平台故障后应重新启动并核对 `/api/auth/session`、登录、Worker 和下载；需要更强可用性时使用上面的 Dockerfile 部署到平台持久服务并挂载卷。不要把预览 VM 称为永久免费的高可用服务。
+外层守护负责应用进程退出后的重启。早期缺少 VM 启动入口，平台恢复时只运行原独立 API，公网因此回到占位页。当前已按 [Railway 官方启动钩子说明](https://github.com/railwayapp/cli/blob/master/README.md#cloud-agent-bootstraps)安装 `/etc/railway/bootstrap/startup.sh`，内容来自本仓库 `infra/cloud/startup.sh`。钩子脱离启动会话后调用 `launch_vm.py`，载入私有配置并启动完整应用；运行中的守护持有锁时重复调用直接返回，不中断已有任务。只有没有完整守护时，才终止经路径、命令、监听地址和端口核对的本项目旧独立 API，避免抢占 8000 端口。
+
+已复现只剩 API 的故障状态，并用实际安装的钩子在最小启动环境中恢复网页、API 和 Worker；重复调用保持同一守护，数据库与模型请求记录保留。20 项部署与进程识别检查通过。未执行实际 VM 睡眠／唤醒测试，平台可用性仍需单独维护；需要更强可用性时使用上面的 Dockerfile 部署到平台持久服务并挂载卷。不要把预览 VM 称为永久免费的高可用服务。
+
+检查和手动调用当前 VM 的启动入口：
+
+```bash
+sh -n /etc/railway/bootstrap/startup.sh
+sh /etc/railway/bootstrap/startup.sh
+tail -n 20 /root/.config/devflow/startup.log
+```
+
+新 VM 安装时先检查是否已有启动钩子，保留其他服务的既有内容；不要直接覆盖。当前服务器模型密钥和密码不随启动脚本发布。
