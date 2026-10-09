@@ -4,9 +4,9 @@
 
 ## 安卓安装包
 
-已生成 `artifacts/mobile/DevFlow-0.18-debug.apk`，862386 字节（约 0.82 MiB），版本 0.18.0，包名 `com.mysiya.devflow`。这是个人测试安装包，已完成原生构建、Lint（0 错误、4 警告）和 v2 签名校验，未完成手机实机验收。
+最新客户端为 0.18.1 / versionCode 19，安装包位于 `artifacts/mobile/DevFlow-0.18.1-debug.apk`，包名 `com.mysiya.devflow`，沿用原测试签名，可覆盖安装旧版。它是个人测试包，手机实机验收与原生编译核验分别记录。
 
-电脑可访问当前服务的 `/downloads/DevFlow-0.18-debug.apk`，或在网页“设置 → 手机应用”下载，然后把文件传到安卓手机。在手机文件管理器打开 APK，按系统提示允许当前来源安装，安装后启动 DevFlow。第一次需要填写已部署的 HTTPS 服务地址；没有服务器时可以打开连接页，但不能进行分析。服务器包包含同一安装包，部署后也可从 HTTPS 域名直接下载。
+电脑可访问当前服务的 `/downloads/DevFlow-0.18.1-debug.apk`，或在网页“设置 → 手机应用”下载，然后把文件传到安卓手机。在手机文件管理器打开 APK，按系统提示允许当前来源安装，安装后启动 DevFlow。新包预设 mobile/service.json 中的 HTTPS 地址，第一次直接连接登录页，后续保留登录会话；无需手填地址，也没有内置账号密码。服务器必须已完成启动和认证检查，安装包生成不代表后台已上线。连接菜单仍可更换其他受信任的服务。
 
 工程在 `mobile/android/`。首次启动填写服务根地址，例如 `https://devflow.example.com`，不能填写 `127.0.0.1:3000`、API 子路径或含密码/查询参数的 URL。客户端先读取 `/api/auth/session`，确认服务启用登录，再载入工作台。登录、源码分析和后台记录使用原接口。
 
@@ -32,9 +32,9 @@
 .\scripts\build-android.ps1 -AcceptSdkLicense -ServerUrl 'https://你的域名'
 ```
 
-脚本只安装本工程需要的 SDK 包，生成本地测试签名，执行 APK 构建、Android Lint 和签名验证。成功后安装包复制到 `artifacts/mobile/DevFlow-0.18-debug.apk`。这是用于个人安装联调的测试包；商店分发需要独立维护正式签名、应用说明和相应发布流程。保留当前测试签名私钥才能覆盖安装后续同签名版本。
+未传 ServerUrl 时默认读取 mobile/service.json，只接受不带凭据、路径或参数的 HTTPS 根地址。脚本只安装本工程需要的 SDK 包，生成本地测试签名，执行 APK 构建、Android Lint 和签名验证。成功后安装包复制到 `artifacts/mobile/DevFlow-0.18.1-debug.apk`。这是用于个人安装联调的测试包；商店分发需要独立维护正式签名、应用说明和相应发布流程。保留当前测试签名私钥才能覆盖安装后续同签名版本。
 
-`scripts/verify-android.py` 另行核对包名、版本、最小系统、权限、编译后的 Manifest、签名、Lint 和解压后的凭据匹配，证明保存在 `artifacts/mobile/android-apk-proof-v18.json`。当前四个 Lint 警告涉及旧目标 API、新 compileSdk 可用、低系统忽略返回属性及开启 JavaScript；Next.js 工作台需要 JavaScript，WebView 限制 HTTPS 同域且没有原生 JS 接口。没有静默压掉这些警告。按 [Android 备份规则](https://developer.android.com/identity/data/autobackup)明确排除云备份和设备迁移中的应用数据，编译结果已核对；实际厂商系统行为仍需手机验证。
+`scripts/verify-android.py` 另行核对包名、版本、最小系统、权限、编译后的 Manifest、签名、Lint 和解压后的凭据匹配，还回读 APK 中的预设地址；证明保存在 `artifacts/mobile/android-apk-proof-v181.json`，旧版证明保留。当前四个 Lint 警告涉及旧目标 API、新 compileSdk 可用、低系统忽略返回属性及开启 JavaScript；Next.js 工作台需要 JavaScript，WebView 限制 HTTPS 同域且没有原生 JS 接口。没有静默压掉这些警告。按 [Android 备份规则](https://developer.android.com/identity/data/autobackup)明确排除云备份和设备迁移中的应用数据，编译结果已核对；实际厂商系统行为仍需手机验证。
 
 地址校验可在没有 SDK 时用 JDK 单独验证：
 

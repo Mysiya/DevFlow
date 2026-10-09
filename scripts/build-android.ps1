@@ -5,6 +5,12 @@ $taskProject=Join-Path $taskRoot 'mobile\android'
 $taskTools=Join-Path $taskProject '.local'
 $taskPython=Join-Path $taskRoot '.venv\Scripts\python.exe'
 if (!$AcceptSdkLicense) { throw 'Read https://developer.android.com/studio#downloads, then use -AcceptSdkLicense only if you explicitly agree to the Android SDK license.' }
+$taskServiceConfig=Join-Path $taskRoot 'mobile\service.json'
+if (!$ServerUrl -and (Test-Path -LiteralPath $taskServiceConfig)) { $ServerUrl=(Get-Content -LiteralPath $taskServiceConfig -Raw | ConvertFrom-Json).server_url }
+if ($ServerUrl) {
+    $taskServerUri=$null
+    if (![Uri]::TryCreate($ServerUrl,[UriKind]::Absolute,[ref]$taskServerUri) -or $taskServerUri.Scheme -ne 'https' -or !$taskServerUri.Host -or $taskServerUri.UserInfo -or $taskServerUri.Query -or $taskServerUri.Fragment -or $taskServerUri.AbsolutePath -ne '/') { throw 'ServerUrl must be a HTTPS root address without credentials.' }
+}
 if (!$JavaHome) {
     $taskJavaCommand=Get-Command java.exe -ErrorAction SilentlyContinue
     if ($taskJavaCommand) {
@@ -60,10 +66,10 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'APK build or Android lint failed.' }
     $taskDelivery=Join-Path $taskRoot 'artifacts\mobile'
     New-Item -ItemType Directory -Force -Path $taskDelivery | Out-Null
-    Copy-Item -LiteralPath (Join-Path $taskProject 'app\build\outputs\apk\debug\app-debug.apk') -Destination (Join-Path $taskDelivery 'DevFlow-0.18-debug.apk')
-    & (Join-Path $env:ANDROID_HOME 'build-tools\36.0.0\apksigner.bat') verify --verbose --print-certs (Join-Path $taskDelivery 'DevFlow-0.18-debug.apk')
+    Copy-Item -LiteralPath (Join-Path $taskProject 'app\build\outputs\apk\debug\app-debug.apk') -Destination (Join-Path $taskDelivery 'DevFlow-0.18.1-debug.apk')
+    & (Join-Path $env:ANDROID_HOME 'build-tools\36.0.0\apksigner.bat') verify --verbose --print-certs (Join-Path $taskDelivery 'DevFlow-0.18.1-debug.apk')
     if ($LASTEXITCODE -ne 0) { throw 'APK signature verification failed.' }
     $taskDownloads=Join-Path $taskRoot 'frontend\public\downloads'
     New-Item -ItemType Directory -Force -Path $taskDownloads | Out-Null
-    Copy-Item -LiteralPath (Join-Path $taskDelivery 'DevFlow-0.18-debug.apk') -Destination (Join-Path $taskDownloads 'DevFlow-0.18-debug.apk')
+    Copy-Item -LiteralPath (Join-Path $taskDelivery 'DevFlow-0.18.1-debug.apk') -Destination (Join-Path $taskDownloads 'DevFlow-0.18.1-debug.apk')
 } finally { Pop-Location }

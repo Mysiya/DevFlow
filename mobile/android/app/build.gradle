@@ -1,4 +1,14 @@
 plugins { id 'com.android.application' }
+def serviceFile = rootProject.file('../service.json')
+def serviceConfig = serviceFile.exists() ? new groovy.json.JsonSlurper().parse(serviceFile) : [:]
+def serverUrl = providers.gradleProperty('devflowServerUrl').getOrElse(serviceConfig.server_url ?: '')
+if (serverUrl) {
+    def address = new URI(serverUrl)
+    if (address.scheme != 'https' || !address.host || address.rawUserInfo || address.rawQuery || address.rawFragment
+        || !(address.rawPath in ['', '/']) || address.port == 0 || address.port > 65535) {
+        throw new GradleException('The default service must be a public HTTPS root address without credentials')
+    }
+}
 android {
     namespace 'com.mysiya.devflow'
     compileSdk 35
@@ -6,9 +16,9 @@ android {
         applicationId 'com.mysiya.devflow'
         minSdk 26
         targetSdk 35
-        versionCode 18
-        versionName '0.18.0'
-        buildConfigField 'String', 'DEFAULT_SERVER_URL', groovy.json.JsonOutput.toJson(providers.gradleProperty('devflowServerUrl').getOrElse(''))
+        versionCode 19
+        versionName '0.18.1'
+        buildConfigField 'String', 'DEFAULT_SERVER_URL', groovy.json.JsonOutput.toJson(serverUrl)
     }
     buildFeatures { buildConfig true }
     compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }

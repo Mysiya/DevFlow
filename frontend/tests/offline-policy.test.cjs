@@ -36,7 +36,7 @@ test('failed navigation returns public fallback only',async()=>{
 });
 test('foreign origins and unlisted static files bypass the worker',()=>{
   const r=runtime(true);
-  for(const url of ['https://other.test/offline.html','https://devflow.example.test/_next/static/app.js','https://devflow.example.test/downloads/DevFlow-0.18-debug.apk','https://devflow.example.test/icons/icon-192.png?private=1'])assert.equal(r.request(url),undefined);
+  for(const url of ['https://other.test/offline.html','https://devflow.example.test/_next/static/app.js','https://devflow.example.test/downloads/DevFlow-0.18-debug.apk','https://devflow.example.test/downloads/DevFlow-0.18.1-debug.apk','https://devflow.example.test/icons/icon-192.png?private=1'])assert.equal(r.request(url),undefined);
 });
 test('activation removes only older caches belonging to this worker',async()=>{
   const r=runtime();let done;r.handlers.activate({waitUntil:value=>done=value});await done;

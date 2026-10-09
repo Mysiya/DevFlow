@@ -310,6 +310,6 @@ class WorkspaceManager:
                 if not state:
                     state = CodeWorkspace(repository_id=repo_id, source=source); db.add(state)
                 state.source, state.sha, state.status, state.file_count = source, sha, "ready", len(files)
-                state.message = ("GitHub 代码已同步" if source == "github" else "本地项目源码已导入，尚未推送到 GitHub") + f"；{len(files)} 个可读文件，{omitted} 个文件未纳入读取范围。"
+                state.message = ("GitHub 代码已同步" if source == "github" else "本地项目源码快照已创建，与远程提交单独管理") + f"；{len(files)} 个可读文件，{omitted} 个文件未纳入读取范围。"
                 state.updated_at = utcnow(); db.commit()
             return self.status(repo_id)
