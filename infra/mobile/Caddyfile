@@ -1,0 +1,11 @@
+{$DEVFLOW_DOMAIN} {
+    encode zstd gzip
+    header {
+        Strict-Transport-Security "max-age=31536000"
+        X-Content-Type-Options "nosniff"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        -Server
+    }
+    # The frontend forwards /api to the backend on the internal Docker network.
+    reverse_proxy frontend:3000
+}

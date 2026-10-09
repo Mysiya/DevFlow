@@ -1,0 +1,31 @@
+# HTTPS server overlay. No deployment is performed by creating this file.
+services:
+  postgres:
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set a strong database password}
+  backend:
+    environment: &mobile-auth
+      DATABASE_URL: postgresql+psycopg://devflow:${POSTGRES_PASSWORD:?Set database password}@postgres:5432/devflow
+      AUTH_ENABLED: "true"
+      AUTH_COOKIE_SECURE: "true"
+      BOOTSTRAP_ADMIN_PASSWORD: ${BOOTSTRAP_ADMIN_PASSWORD:?Set an initial admin password of at least 12 characters}
+      CORS_ORIGINS: https://${DEVFLOW_DOMAIN:?Set the public domain}
+      GITHUB_WRITE_ENABLED: "false"
+  worker:
+    environment: *mobile-auth
+  gateway:
+    image: caddy:2.10-alpine
+    environment:
+      DEVFLOW_DOMAIN: ${DEVFLOW_DOMAIN:?Set the public domain}
+    volumes:
+      - ./infra/mobile/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - frontend
+volumes:
+  caddy-data:
+  caddy-config:

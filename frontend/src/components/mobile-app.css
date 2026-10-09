@@ -1,0 +1,12 @@
+.mobile-offline-banner { display:flex; justify-content:center; align-items:center; gap:9px; padding:12px 18px; background:#fff1df; color:#775629; font-size:13px; line-height:1.6; }
+.mobile-install-panel { padding:24px; }
+.mobile-install-panel>p { font-size:14px; line-height:1.8; margin:14px 0; overflow-wrap:anywhere; }
+.mobile-install-panel .panel-heading h3 { display:flex; align-items:center; gap:8px; }
+.mobile-install-panel .button { margin:8px 0; }
+.mobile-service-address code { word-break:break-all; }
+.mobile-apk-download { border:1px solid var(--line); border-radius:10px; padding:14px; margin:16px 0; background:var(--canvas); }
+.mobile-apk-download p { line-height:1.7; margin-top:8px; }
+@media(max-width:760px) {
+  .mobile-install-panel { padding:20px; }
+  .mobile-offline-banner { padding-top:calc(10px + env(safe-area-inset-top)); padding-inline:16px; justify-content:flex-start; }
+}

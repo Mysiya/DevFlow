@@ -1,0 +1,9 @@
+{
+  "id": "release-check-v1", "name": "发布前协作检查", "version": "1.0.0",
+  "description": "规划必要的只读检查，汇总 PR、CI、源码与文档证据。",
+  "task": "workflow", "requires_target": false,
+  "roles": ["Planner", "code", "pr", "ci", "issue", "knowledge", "report", "Synthesis"],
+  "allowed_tools": ["get_repo_health", "inspect_issue", "inspect_pr", "inspect_ci", "search_knowledge", "search_memories", "read_code", "search_code"],
+  "checklist": ["按问题与可用数据规划必要任务", "核对 PR head 与 CI 提交", "汇总有证据的风险和冲突", "保留失败、跳过和未覆盖的检查"],
+  "instructions": "Planner 仅安排当前问题必要且资料可用的只读任务，遵守任务预算和 DAG 依赖。各专用角色提供自身证据范围内的检查。Synthesis 合并可核对结论，并列出失败、跳过、冲突及未覆盖项目；不能把部分任务成功当成整个发布检查完成。PR 与 CI 按当前 head 关联，本地源码不证明远程已发布。提供人工核查建议，不承诺可发布、不执行发布。"
+}

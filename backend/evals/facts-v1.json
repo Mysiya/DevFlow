@@ -1,0 +1,31 @@
+{
+  "dataset": "facts-v1",
+  "description": "16 条人工源码数值回归，只检查已支持的声明与公式，不代表模型准确率。",
+  "sources": {
+    "formula": "def ranked_search():\n    score = 0\n    score += idf * tf * 2.2 / (tf + 1.2 * (.25 + .75 * length / average))",
+    "named": "def ranked_search():\n    k = 1.2\n    b = .75\n    mult = 2.2\n    comp = .25\n    score = 0\n    score += idf * tf * mult / (tf + k * (comp + b * length / average))",
+    "constant": "MAX_LINES = 80",
+    "expression": "MAX_LINES = 40 * 2",
+    "comment": "# MAX_LINES = 80\ntext = 'MAX_LINES = 80'",
+    "invalid": "def incomplete(:\n    MAX_LINES = 80",
+    "reassigned": "def ranked_search():\n    k = 1.2\n    if override:\n        k = 2.2\n    score = 0\n    score += idf * tf * 2.2 / (tf + k * (.25 + .75 * length / average))"
+  },
+  "cases": [
+    {"id":"formula-correct","label":"正确 BM25 参数","sources":[{"fixture":"formula"}],"text":"ranked_search 的 k1=1.2，b=0.75。","status":"matched","count":2},
+    {"id":"historical-gap","label":"证据缺口也检查错误数值","sources":[{"fixture":"formula"}],"field":"gaps","text":"BM25 参数（如 k1=2.2, b=0.75）的来源未说明。","status":"conflict","count":2},
+    {"id":"chinese-constant","label":"中文紧邻常量名称","sources":[{"fixture":"constant"}],"text":"这里MAX_LINES为80。","status":"matched"},
+    {"id":"negation","label":"否定句保留未验证","sources":[{"fixture":"formula"}],"text":"不是 k1=2.2。","status":"insufficient"},
+    {"id":"proposal","label":"修改建议保留未验证","sources":[{"fixture":"formula"}],"text":"建议改为 k1=2.2。","status":"insufficient"},
+    {"id":"unsupported-expression","label":"不求值算术表达式","sources":[{"fixture":"expression"}],"text":"MAX_LINES=80。","status":"insufficient"},
+    {"id":"ambiguous-functions","label":"函数作用域有歧义","sources":[{"fixture":"formula","symbol":"first"},{"fixture":"formula","path":"other.py","symbol":"second"}],"text":"k1=1.2。","status":"insufficient"},
+    {"id":"ambiguous-versions","label":"不同提交不混用","sources":[{"fixture":"constant"},{"fixture":"constant","sha":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"}],"text":"MAX_LINES=80。","status":"insufficient"},
+    {"id":"citation-scope","label":"结论只使用其引用范围","sources":[{"fixture":"constant"}],"field":"finding","refs":[],"text":"MAX_LINES=80。","status":"insufficient"},
+    {"id":"untrusted-issue","label":"Issue 正文不充当源码","sources":[{"fixture":"constant","source":"issue"}],"text":"MAX_LINES=80。","status":"insufficient"},
+    {"id":"partial-function","label":"部分函数不确认公式绑定","sources":[{"fixture":"formula","partial_symbol":true}],"text":"k1=1.2。","status":"insufficient"},
+    {"id":"comments-and-strings","label":"注释与字符串不是声明","sources":[{"fixture":"comment"}],"text":"MAX_LINES=80。","status":"insufficient"},
+    {"id":"invalid-python","label":"解析失败不编造来源","sources":[{"fixture":"invalid"}],"text":"MAX_LINES=80。","status":"insufficient"},
+    {"id":"named-formula","label":"唯一直接字面量绑定","sources":[{"fixture":"named"}],"text":"k1=1.2，b=0.75。","status":"matched","count":2},
+    {"id":"conditional-reassignment","label":"条件重赋值不推断参数","sources":[{"fixture":"reassigned"}],"text":"k1=1.2。","status":"insufficient"},
+    {"id":"ambiguous-files","label":"同版本不同文件不混用","sources":[{"fixture":"constant"},{"fixture":"constant","path":"other.py"}],"text":"MAX_LINES=80。","status":"insufficient"}
+  ]
+}

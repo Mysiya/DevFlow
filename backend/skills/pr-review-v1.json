@@ -1,0 +1,8 @@
+{
+  "id": "pr-review-v1", "name": "PR 风险审查", "version": "1.0.0",
+  "description": "检查指定 PR 的变更、风险和当前 head 对应的 CI。",
+  "task": "pr", "requires_target": true, "roles": ["pr"],
+  "allowed_tools": ["inspect_pr", "inspect_ci", "search_knowledge", "search_memories", "read_code", "search_code"],
+  "checklist": ["核对指定 PR 与 head SHA", "从 diff 引用已证实风险", "核对 CI 是否对应当前 head", "记录测试缺口与审查建议"],
+  "instructions": "只审查用户明确指定的 PR。按变更范围、已证实风险、CI 状态和测试缺口组织结果。逐项引用 diff 或当前 head 对应检查，旧提交 CI 不能证明当前版本通过。工作区 SHA 不同则明确说明，不将工作区片段当成 PR head。无法取得完整 diff、日志或测试时记录缺口，不作可合并保证。"
+}

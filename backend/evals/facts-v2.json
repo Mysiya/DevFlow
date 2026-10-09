@@ -1,0 +1,520 @@
+{
+  "dataset": "facts-v2",
+  "description": "42 条人工回归：16 条数值检查与 26 条有限公式关系检查，不代表通用语义验证或模型准确率。",
+  "sources": {
+    "formula": "def ranked_search():\n    score = 0\n    score += idf * tf * 2.2 / (tf + 1.2 * (.25 + .75 * length / average))",
+    "named": "def ranked_search():\n    k = 1.2\n    b = .75\n    mult = 2.2\n    comp = .25\n    score = 0\n    score += idf * tf * mult / (tf + k * (comp + b * length / average))",
+    "constant": "MAX_LINES = 80",
+    "expression": "MAX_LINES = 40 * 2",
+    "comment": "# MAX_LINES = 80\ntext = 'MAX_LINES = 80'",
+    "invalid": "def incomplete(:\n    MAX_LINES = 80",
+    "reassigned": "def ranked_search():\n    k = 1.2\n    if override:\n        k = 2.2\n    score = 0\n    score += idf * tf * 2.2 / (tf + k * (.25 + .75 * length / average))",
+    "changed_formula": "def ranked_search():\n    score = 0\n    score += idf * tf * 3.2 / (tf + 1.2 * (.25 + .75 * length / average))"
+  },
+  "cases": [
+    {
+      "id": "formula-correct",
+      "label": "正确 BM25 参数",
+      "sources": [
+        {
+          "fixture": "formula"
+        }
+      ],
+      "text": "ranked_search 的 k1=1.2，b=0.75。",
+      "status": "matched",
+      "count": 2
+    },
+    {
+      "id": "historical-gap",
+      "label": "证据缺口也检查错误数值",
+      "sources": [
+        {
+          "fixture": "formula"
+        }
+      ],
+      "field": "gaps",
+      "text": "BM25 参数（如 k1=2.2, b=0.75）的来源未说明。",
+      "status": "conflict",
+      "count": 2
+    },
+    {
+      "id": "chinese-constant",
+      "label": "中文紧邻常量名称",
+      "sources": [
+        {
+          "fixture": "constant"
+        }
+      ],
+      "text": "这里MAX_LINES为80。",
+      "status": "matched"
+    },
+    {
+      "id": "negation",
+      "label": "否定句保留未验证",
+      "sources": [
+        {
+          "fixture": "formula"
+        }
+      ],
+      "text": "不是 k1=2.2。",
+      "status": "insufficient"
+    },
+    {
+      "id": "proposal",
+      "label": "修改建议保留未验证",
+      "sources": [
+        {
+          "fixture": "formula"
+        }
+      ],
+      "text": "建议改为 k1=2.2。",
+      "status": "insufficient"
+    },
+    {
+      "id": "unsupported-expression",
+      "label": "不求值算术表达式",
+      "sources": [
+        {
+          "fixture": "expression"
+        }
+      ],
+      "text": "MAX_LINES=80。",
+      "status": "insufficient"
+    },
+    {
+      "id": "ambiguous-functions",
+      "label": "函数作用域有歧义",
+      "sources": [
+        {
+          "fixture": "formula",
+          "symbol": "first"
+        },
+        {
+          "fixture": "formula",
+          "path": "other.py",
+          "symbol": "second"
+        }
+      ],
+      "text": "k1=1.2。",
+      "status": "insufficient"
+    },
+    {
+      "id": "ambiguous-versions",
+      "label": "不同提交不混用",
+      "sources": [
+        {
+          "fixture": "constant"
+        },
+        {
+          "fixture": "constant",
+          "sha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        }
+      ],
+      "text": "MAX_LINES=80。",
+      "status": "insufficient"
+    },
+    {
+      "id": "citation-scope",
+      "label": "结论只使用其引用范围",
+      "sources": [
+        {
+          "fixture": "constant"
+        }
+      ],
+      "field": "finding",
+      "refs": [],
+      "text": "MAX_LINES=80。",
+      "status": "insufficient"
+    },
+    {
+      "id": "untrusted-issue",
+      "label": "Issue 正文不充当源码",
+      "sources": [
+        {
+          "fixture": "constant",
+          "source": "issue"
+        }
+      ],
+      "text": "MAX_LINES=80。",
+      "status": "insufficient"
+    },
+    {
+      "id": "partial-function",
+      "label": "部分函数不确认公式绑定",
+      "sources": [
+        {
+          "fixture": "formula",
+          "partial_symbol": true
+        }
+      ],
+      "text": "k1=1.2。",
+      "status": "insufficient"
+    },
+    {
+      "id": "comments-and-strings",
+      "label": "注释与字符串不是声明",
+      "sources": [
+        {
+          "fixture": "comment"
+        }
+      ],
+      "text": "MAX_LINES=80。",
+      "status": "insufficient"
+    },
+    {
+      "id": "invalid-python",
+      "label": "解析失败不编造来源",
+      "sources": [
+        {
+          "fixture": "invalid"
+        }
+      ],
+      "text": "MAX_LINES=80。",
+      "status": "insufficient"
+    },
+    {
+      "id": "named-formula",
+      "label": "唯一直接字面量绑定",
+      "sources": [
+        {
+          "fixture": "named"
+        }
+      ],
+      "text": "k1=1.2，b=0.75。",
+      "status": "matched",
+      "count": 2
+    },
+    {
+      "id": "conditional-reassignment",
+      "label": "条件重赋值不推断参数",
+      "sources": [
+        {
+          "fixture": "reassigned"
+        }
+      ],
+      "text": "k1=1.2。",
+      "status": "insufficient"
+    },
+    {
+      "id": "ambiguous-files",
+      "label": "同版本不同文件不混用",
+      "sources": [
+        {
+          "fixture": "constant"
+        },
+        {
+          "fixture": "constant",
+          "path": "other.py"
+        }
+      ],
+      "text": "MAX_LINES=80。",
+      "status": "insufficient"
+    },
+    {
+      "id": "relation-positive",
+      "label": "分子乘数与参数关系一致",
+      "sources": [
+        {
+          "fixture": "formula"
+        }
+      ],
+      "text": "分子乘数2.2等于k1+1。",
+      "status": "matched"
+    },
+    {
+      "id": "historical-relation-title",
+      "label": "历史错误关系断言",
+      "sources": [
+        {
+          "fixture": "formula"
+        }
+      ],
+      "text": "分子中的 2.2 不是 k1+1。",
+      "status": "conflict"
+    },
+    {
+      "id": "historical-relation-summary",
+      "label": "常量写法不消除数学关系",
+      "sources": [
+        {
+          "fixture": "formula"
+        }
+      ],
+      "text": "分子中的2.2是常量乘数，不是k1+1。",
+      "status": "conflict"
+    },
+    {
+      "id": "expression-positive",
+      "label": "k1 加一的数值",
+      "sources": [
+        {
+          "fixture": "formula"
+        }
+      ],
+      "text": "k1+1=2.2。",
+      "status": "matched"
+    },
+    {
+      "id": "length-positive",
+      "label": "长度参数的补数",
+      "sources": [
+        {
+          "fixture": "formula"
+        }
+      ],
+      "text": "1-b=0.25。",
+      "status": "matched"
+    },
+    {
+      "id": "length-negative",
+      "label": "错误否定补数关系",
+      "sources": [
+        {
+          "fixture": "formula"
+        }
+      ],
+      "text": "1-b不是0.25。",
+      "status": "conflict"
+    },
+    {
+      "id": "wrong-source-multiplier",
+      "label": "关系句中的源码数值错误",
+      "sources": [
+        {
+          "fixture": "formula"
+        }
+      ],
+      "text": "分子乘数3.2等于k1+1。",
+      "status": "conflict"
+    },
+    {
+      "id": "wrong-expression-role",
+      "label": "分子与长度补数不混淆",
+      "sources": [
+        {
+          "fixture": "formula"
+        }
+      ],
+      "text": "分子乘数等于1-b。",
+      "status": "conflict"
+    },
+    {
+      "id": "missing-formula",
+      "label": "直接声明不充当公式",
+      "sources": [
+        {
+          "fixture": "constant"
+        }
+      ],
+      "text": "分子乘数等于k1+1。",
+      "status": "insufficient"
+    },
+    {
+      "id": "changed-multiplier-positive",
+      "label": "依据新源码判定关系",
+      "sources": [
+        {
+          "fixture": "changed_formula"
+        }
+      ],
+      "text": "分子乘数等于k1+1。",
+      "status": "conflict"
+    },
+    {
+      "id": "changed-multiplier-negative",
+      "label": "不硬编码乘数的预期关系",
+      "sources": [
+        {
+          "fixture": "changed_formula"
+        }
+      ],
+      "text": "分子乘数不等于k1+1。",
+      "status": "matched"
+    },
+    {
+      "id": "bound-relation",
+      "label": "唯一字面量绑定的公式关系",
+      "sources": [
+        {
+          "fixture": "named"
+        }
+      ],
+      "text": "分子乘数等于k1+1。",
+      "status": "matched"
+    },
+    {
+      "id": "partial-relation",
+      "label": "部分函数不确认关系",
+      "sources": [
+        {
+          "fixture": "formula",
+          "partial_symbol": true
+        }
+      ],
+      "text": "分子乘数等于k1+1。",
+      "status": "insufficient"
+    },
+    {
+      "id": "relation-citation-scope",
+      "label": "关系结论保留引用范围",
+      "sources": [
+        {
+          "fixture": "formula"
+        }
+      ],
+      "text": "分子乘数等于k1+1。",
+      "status": "insufficient",
+      "field": "finding",
+      "refs": []
+    },
+    {
+      "id": "relation-subject-ambiguity",
+      "label": "公式函数歧义不合并",
+      "sources": [
+        {
+          "fixture": "formula",
+          "symbol": "first"
+        },
+        {
+          "fixture": "formula",
+          "path": "other.py",
+          "symbol": "second"
+        }
+      ],
+      "text": "分子乘数等于k1+1。",
+      "status": "insufficient"
+    },
+    {
+      "id": "relation-version-ambiguity",
+      "label": "关系证据版本不混用",
+      "sources": [
+        {
+          "fixture": "formula"
+        },
+        {
+          "fixture": "formula",
+          "sha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        }
+      ],
+      "text": "分子乘数等于k1+1。",
+      "status": "insufficient"
+    },
+    {
+      "id": "relation-proposal",
+      "label": "参数修改建议不当作当前断言",
+      "sources": [
+        {
+          "fixture": "formula"
+        }
+      ],
+      "text": "建议分子乘数等于k1+1。",
+      "status": "insufficient"
+    },
+    {
+      "id": "relation-quotation",
+      "label": "引述错误说法不当作本人断言",
+      "sources": [
+        {
+          "fixture": "formula"
+        }
+      ],
+      "text": "有人声称“分子中的2.2不是k1+1”。",
+      "status": "insufficient"
+    },
+    {
+      "id": "relation-source-writing",
+      "label": "区分源码写法与数学关系",
+      "sources": [
+        {
+          "fixture": "formula"
+        }
+      ],
+      "text": "源码直接写字面量2.2，分子中的2.2不是k1+1表达式。",
+      "status": "insufficient"
+    },
+    {
+      "id": "unrecognized-writing",
+      "label": "未支持的句式不算已核对",
+      "sources": [
+        {
+          "fixture": "formula"
+        }
+      ],
+      "text": "代码直接写2.2，没有写成k1+1。",
+      "status": "insufficient",
+      "count": 0
+    },
+    {
+      "id": "reverse-equality",
+      "label": "反向数值等式",
+      "sources": [
+        {
+          "fixture": "formula"
+        }
+      ],
+      "text": "2.2=k1+1。",
+      "status": "matched",
+      "count": 1
+    },
+    {
+      "id": "chained-expression",
+      "label": "连等式中只核对支持的部分",
+      "sources": [
+        {
+          "fixture": "formula"
+        }
+      ],
+      "text": "2.2=k1+1=1.2+1。",
+      "status": "matched",
+      "count": 1
+    },
+    {
+      "id": "unrecognized-arithmetic-plus",
+      "label": "不截断加法表达式误报",
+      "sources": [
+        {
+          "fixture": "formula"
+        }
+      ],
+      "text": "k1+1=1.2+1。",
+      "status": "insufficient",
+      "count": 0
+    },
+    {
+      "id": "unrecognized-arithmetic-minus",
+      "label": "不截断减法表达式误报",
+      "sources": [
+        {
+          "fixture": "formula"
+        }
+      ],
+      "text": "1-b=1-0.75。",
+      "status": "insufficient",
+      "count": 0
+    },
+    {
+      "id": "wrong-chain",
+      "label": "错误连等式仍能检测",
+      "sources": [
+        {
+          "fixture": "formula"
+        }
+      ],
+      "text": "2.2=k1+1=1.2。",
+      "status": "conflict",
+      "count": 2
+    },
+    {
+      "id": "unrecognized-left-arithmetic",
+      "label": "不截断左侧算术表达式",
+      "sources": [
+        {
+          "fixture": "formula"
+        }
+      ],
+      "text": "1.2 + 2.2 = k1+1。",
+      "status": "insufficient",
+      "count": 0
+    }
+  ]
+}

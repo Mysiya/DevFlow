@@ -1,0 +1,26 @@
+{
+  "id": "code-v1",
+  "description": "人工编写的 Python/TypeScript 源码回归集；标准来源为路径和完整标注行段，不调用模型，不代表真实仓库准确率。",
+  "files": [
+    {"path":"backend/stream.py","text":"from framework import Response\n\n@route('/events')\nasync def stream_events(cursor):\n    # Replay saved events after the browser reconnects.\n    if cursor < 0:\n        raise ValueError('invalid cursor')\n    permission = await check_permission()\n    if not permission:\n        raise PermissionError('forbidden')\n    rows = await load_events(cursor)\n    current = cursor\n    for row in rows:\n        current = row['id']\n        yield encode_event(row)\n    while not await is_complete():\n        pending = await load_events(current)\n        if not pending:\n            yield encode_event({'heartbeat': True})\n            await pause()\n            continue\n        for row in pending:\n            current = row['id']\n            yield encode_event(row)\n    yield encode_event({'done': True})\n"},
+    {"path":"backend/security.py","text":"import hashlib\nimport hmac\n\ndef verify_webhook_signature(raw_utf8, signature, secret):\n    expected = hmac.new(secret, raw_utf8, hashlib.sha256).hexdigest()\n    return hmac.compare_digest(signature, expected)\n\ndef verify_password(password, stored):\n    return hash_password(password) == stored\n"},
+    {"path":"backend/worker.py","text":"class Worker:\n    def renewLease(self, owner):\n        # 后台租约续期必须核对执行令牌\n        return update_lease(owner, self.token)\n\n    def stop(self):\n        self.running = False\n"},
+    {"path":"backend/search.py","text":"import math\n\ndef rank_chunks(query, corpus):\n    # Compute BM25 with inverse document frequency.\n    scores = bm25(query, corpus)\n    return sorted(scores, reverse=True)\n"},
+    {"path":"frontend/Events.tsx","text":"const reconnectEventStream = async (cursor: number) => {\n  // retry event stream with the last saved cursor\n  const response = await fetch(`/events?after=${cursor}`);\n  return response.body;\n};\n"},
+    {"path":"frontend/Review.tsx","text":"export function approveDraft(revision: number) {\n  // approve only the reviewed revision\n  return fetch('/approve', {\n    method: 'POST',\n    body: JSON.stringify({ revision }),\n  });\n}\n"},
+    {"path":"a-notes/mentions.md","text":"# Terms used in this project\nstream_events, verify_webhook_signature, renewLease, rank_chunks\nThe actual definitions are in backend source files.\n"},
+    {"path":"backend/noise.py","text":"def logging_helper():\n    # query corpus cursor response events token\n    return 'logging only'\n"}
+  ],
+  "cases": [
+    {"id":"python-definition","query":"stream_events","expected":[{"path":"backend/stream.py","line_start":3,"line_end":25}]},
+    {"id":"webhook-definition","query":"verify_webhook_signature","expected":[{"path":"backend/security.py","line_start":4,"line_end":6}]},
+    {"id":"camel-method","query":"renew lease owner","expected":[{"path":"backend/worker.py","line_start":2,"line_end":4}]},
+    {"id":"snake-function","query":"rank chunks BM25","expected":[{"path":"backend/search.py","line_start":3,"line_end":6}]},
+    {"id":"typescript-camel","query":"reconnect event stream retry","expected":[{"path":"frontend/Events.tsx","line_start":1,"line_end":5}]},
+    {"id":"typescript-snake-query","query":"approve_draft revision","expected":[{"path":"frontend/Review.tsx","line_start":1,"line_end":7}]},
+    {"id":"exact-path","query":"frontend/Review.tsx","expected":[{"path":"frontend/Review.tsx","line_start":1,"line_end":7}]},
+    {"id":"chinese-comment","query":"后台租约续期执行令牌","expected":[{"path":"backend/worker.py","line_start":2,"line_end":4}]},
+    {"id":"code-abstention","query":"zzq_no_code_fixture","expected":[]},
+    {"id":"directory-isolation","query":"verify_webhook_signature","path_prefix":"frontend","expected":[]}
+  ]
+}

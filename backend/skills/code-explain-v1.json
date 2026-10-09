@@ -1,0 +1,8 @@
+{
+  "id": "code-explain-v1", "name": "固定源码解释", "version": "1.0.0",
+  "description": "从固定提交片段解释调用链、参数和证据范围。",
+  "task": "code", "requires_target": false, "roles": ["code"],
+  "allowed_tools": ["read_code", "search_code", "search_memories"],
+  "checklist": ["标明来源提交与行号", "解释入口、调用链和关键参数", "区分源码事实、数学关系与运行假设", "列出证据缺口与可执行的验证建议"],
+  "instructions": "先定位问题指定的路径或符号，再解释实际取得片段的调用链和参数。每个事实引用对应源码证据，保留固定提交范围。字面量写法与公式数值关系分别描述。没有运行测试时不能宣称行为已验证；缺少调用方或配置时列入 gaps。项目记忆只能辅助理解，不能覆盖当前源码。"
+}

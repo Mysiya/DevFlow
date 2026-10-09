@@ -1,0 +1,21 @@
+{
+  "id": "core-v1",
+  "description": "人工编写的固定样例，只验证演示规则、引用和检索；不是模型质量评测。",
+  "corpus": [
+    {"id":"ops","title":"运行约定","heading":"","content":"后台 Worker 租约过期会将任务标为 interrupted，保留进度并等待手动恢复。页面断开不取消后台分析。"},
+    {"id":"retrieval","title":"知识库说明","heading":"","content":"向量索引需要 Embedding 与 Milvus。混合检索使用 RRF 合并 BM25 与向量排名；文档更新后旧索引失效。"},
+    {"id":"review","title":"安全约定","heading":"","content":"草稿修改会撤销原审批，必须提交当前版本重新审核。GitHub 写回默认关闭；发布超时只能核对远程结果，不自动重发。"}
+  ],
+  "retrieval": [
+    {"id":"lease","query":"后台租约过期","expected":["ops"]},
+    {"id":"index","query":"向量索引失效","expected":["retrieval"]},
+    {"id":"approval","query":"草稿修改审批","expected":["review"]},
+    {"id":"abstention","query":"zzq_unrelated_fixture","expected":[]}
+  ],
+  "analysis": [
+    {"id":"pr-risk","task":"pr","target":18,"question":"检查 PR #18","recommendation":"暂缓合入","required_evidence":"pr:18","high_risk":true},
+    {"id":"pr-isolation","task":"pr","target":19,"question":"检查 PR #19","recommendation":"完成剩余核验后人工决定","required_evidence":"pr:19","high_risk":false},
+    {"id":"ci-failure","task":"ci","target":301,"question":"排查 CI #301","required_evidence":"ci:301","text":"200"},
+    {"id":"issue-triage","task":"issue","target":42,"question":"分析 Issue #42","recommendation":"优先处理","required_evidence":"issue:42","high_risk":true}
+  ]
+}

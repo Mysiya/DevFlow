@@ -1,0 +1,6 @@
+# Optional local vector services; install in .vector-venv, not the application environment.
+milvus-lite==3.2.1
+pymilvus==3.0.2
+fastembed==0.8.1
+fastapi>=0.115,<1
+uvicorn>=0.34,<1

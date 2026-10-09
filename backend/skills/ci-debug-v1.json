@@ -1,0 +1,8 @@
+{
+  "id": "ci-debug-v1", "name": "CI 排障", "version": "1.0.0",
+  "description": "从指定 CI run 的失败日志提出有依据的排障步骤。",
+  "task": "ci", "requires_target": true, "roles": ["ci"],
+  "allowed_tools": ["inspect_ci", "search_knowledge", "search_memories", "read_code", "search_code"],
+  "checklist": ["核对 run ID、提交和 job 范围", "定位首个有依据的错误", "区分日志事实与根因假设", "给出验证步骤与缺口"],
+  "instructions": "以用户指定的 CI run ID 为准，说明 head SHA 和失败 job。日志里实际出现的错误与根因假设分开描述并引用证据。日志截断或缺失时不能宣称找到最终根因。建议按低成本验证顺序列出；源码或历史记忆不同版本时注明范围。此流程只读取资料，不重跑 CI、不执行修复命令。"
+}

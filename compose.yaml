@@ -1,0 +1,100 @@
+name: devflow-ai
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: devflow
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-devflow-local}
+      POSTGRES_DB: devflow
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U devflow -d devflow"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  backend:
+    build: ./backend
+    environment: &backend-environment
+      DEVFLOW_MODE: ${DEVFLOW_MODE:-demo}
+      DATABASE_URL: postgresql+psycopg://devflow:${POSTGRES_PASSWORD:-devflow-local}@postgres:5432/devflow
+      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+      GITHUB_WRITE_ENABLED: ${GITHUB_WRITE_ENABLED:-false}
+      GITHUB_WEBHOOK_ENABLED: ${GITHUB_WEBHOOK_ENABLED:-false}
+      GITHUB_WEBHOOK_SECRET: ${GITHUB_WEBHOOK_SECRET:-}
+      GITHUB_WEBHOOK_REPOSITORY_IDS: ${GITHUB_WEBHOOK_REPOSITORY_IDS:-}
+      AUTH_ENABLED: ${AUTH_ENABLED:-false}
+      AUTH_COOKIE_SECURE: ${AUTH_COOKIE_SECURE:-false}
+      BOOTSTRAP_ADMIN_USERNAME: ${BOOTSTRAP_ADMIN_USERNAME:-admin}
+      BOOTSTRAP_ADMIN_PASSWORD: ${BOOTSTRAP_ADMIN_PASSWORD:-}
+      LLM_BASE_URL: ${LLM_BASE_URL:-https://api.example.com/v1}
+      LLM_API_KEY: ${LLM_API_KEY:-}
+      LLM_MODEL: ${LLM_MODEL:-}
+      LLM_MAX_TOKENS: ${LLM_MAX_TOKENS:-4096}
+      LLM_PRICE_CURRENCY: ${LLM_PRICE_CURRENCY:-CNY}
+      LLM_INPUT_PRICE_PER_MILLION: ${LLM_INPUT_PRICE_PER_MILLION:-}
+      LLM_OUTPUT_PRICE_PER_MILLION: ${LLM_OUTPUT_PRICE_PER_MILLION:-}
+      LLM_CACHED_INPUT_PRICE_PER_MILLION: ${LLM_CACHED_INPUT_PRICE_PER_MILLION:-}
+      MCP_ACCESS_TOKEN: ${MCP_ACCESS_TOKEN:-}
+      MCP_REPOSITORY_IDS: ${MCP_REPOSITORY_IDS:-}
+      WORKSPACE_ROOT: /app/data/code
+      LOCAL_PROJECT_ENABLED: "false"
+      WORKFLOW_MAX_TASKS: ${WORKFLOW_MAX_TASKS:-6}
+      AGENT_CONCURRENCY: ${AGENT_CONCURRENCY:-2}
+      AGENT_TIMEOUT_SECONDS: ${AGENT_TIMEOUT_SECONDS:-120}
+      MAX_REPLANS: ${MAX_REPLANS:-1}
+      MAX_RESUME_ATTEMPTS: ${MAX_RESUME_ATTEMPTS:-3}
+      WORKER_CONCURRENCY: ${WORKER_CONCURRENCY:-2}
+      QUEUE_POLL_SECONDS: ${QUEUE_POLL_SECONDS:-0.5}
+      JOB_LEASE_SECONDS: ${JOB_LEASE_SECONDS:-30}
+      RETRIEVAL_BACKEND: ${RETRIEVAL_BACKEND:-keyword}
+      EMBEDDING_BASE_URL: ${EMBEDDING_BASE_URL:-https://api.example.com/v1}
+      EMBEDDING_API_KEY: ${EMBEDDING_API_KEY:-}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-}
+      EMBEDDING_LOCAL: ${EMBEDDING_LOCAL:-false}
+      MILVUS_URI: ${MILVUS_URI:-http://host.docker.internal:19530}
+      MILVUS_DEPLOYMENT: ${MILVUS_DEPLOYMENT:-standalone}
+      MILVUS_TOKEN: ${MILVUS_TOKEN:-}
+      MILVUS_COLLECTION: ${MILVUS_COLLECTION:-devflow_knowledge}
+      RERANK_ENABLED: ${RERANK_ENABLED:-false}
+      RERANK_BASE_URL: ${RERANK_BASE_URL:-https://api.jina.ai/v1}
+      RERANK_API_KEY: ${RERANK_API_KEY:-}
+      RERANK_MODEL: ${RERANK_MODEL:-}
+    volumes:
+      - backend-data:/app/data
+    ports:
+      - "127.0.0.1:8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        DEVFLOW_API_URL: http://backend:8000
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+  worker:
+    build: ./backend
+    command: ["python", "-m", "app.worker"]
+    environment: *backend-environment
+    volumes:
+      - backend-data:/app/data
+    depends_on:
+      postgres:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+volumes:
+  postgres-data:
+  backend-data:
