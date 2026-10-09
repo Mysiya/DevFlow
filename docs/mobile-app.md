@@ -34,7 +34,7 @@
 
 未传 ServerUrl 时默认读取 mobile/service.json，只接受不带凭据、路径或参数的 HTTPS 根地址。脚本只安装本工程需要的 SDK 包，生成本地测试签名，执行 APK 构建、Android Lint 和签名验证。成功后安装包复制到 `artifacts/mobile/DevFlow-0.18.1-debug.apk`。这是用于个人安装联调的测试包；商店分发需要独立维护正式签名、应用说明和相应发布流程。保留当前测试签名私钥才能覆盖安装后续同签名版本。
 
-`scripts/verify-android.py` 另行核对包名、版本、最小系统、权限、编译后的 Manifest、签名、Lint 和解压后的凭据匹配，还回读 APK 中的预设地址；证明保存在 `artifacts/mobile/android-apk-proof-v181.json`，旧版证明保留。当前四个 Lint 警告涉及旧目标 API、新 compileSdk 可用、低系统忽略返回属性及开启 JavaScript；Next.js 工作台需要 JavaScript，WebView 限制 HTTPS 同域且没有原生 JS 接口。没有静默压掉这些警告。按 [Android 备份规则](https://developer.android.com/identity/data/autobackup)明确排除云备份和设备迁移中的应用数据，编译结果已核对；实际厂商系统行为仍需手机验证。
+`scripts/verify-android.py` 另行核对包名、版本、最小系统、权限、编译后的 Manifest、签名、Lint 和解压后的凭据匹配，还回读所有 DEX 中的预设地址；证明保存在 `artifacts/mobile/android-apk-proof-v181.json`，旧版证明保留。0.18.1 的实际 Lint 报告为 0 错误、2 警告：低系统忽略返回属性及开启 JavaScript；旧包报告的 4 项提示保留在原证明中。Next.js 工作台需要 JavaScript，WebView 限制 HTTPS 同域且没有原生 JS 接口，没有添加警告屏蔽。按 [Android 备份规则](https://developer.android.com/identity/data/autobackup)明确排除云备份和设备迁移中的应用数据，编译结果已核对；实际厂商系统行为仍需手机验证。
 
 地址校验可在没有 SDK 时用 JDK 单独验证：
 
