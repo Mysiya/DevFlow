@@ -270,10 +270,19 @@
 - 启用 DEVFLOW_VECTOR_INTEGRATION=1 的最终完整后端回归 **324 项通过，120.46 秒，无跳过**。API 和独立 Worker 在队列空闲时重启，最新实现的 core-v4 固定规则批次 d53df46166a7478aaed91d3da4275725 为 60/60，实现指纹 32115c7f370dfee3f4cc529ec7874797ff02bdab71fa32617581e825fda274de，数据指纹继续为 b3fed7ff35c17011a969666bf1ece356da1b9983ec98a6b88e16bbebf0dc4161。原批次保留，这不是实际模型质量评估。
 - 最终只读交付核验通过：156 个可读源码文件没有上述工具目录，Android MainActivity 源码仍在，旧快照的 SDK 路径接口读取返回 409。服务器源包包含 172 个非忽略文件与同一 APK，逐文件与当前磁盘内容核对一致，没有本地数据、环境密钥或签名私钥。18 条原分析的结果与事件不变，17 条既有模型请求没有增加；两份知识文档共 48 个片段的实际 Milvus ID 一致。APK 下载字节、签名和凭据扫描再次通过；最终证明保存于 artifacts/mobile/mobile-local-proof-v18.json。
 
-## v0.18.1 源码发布与预设地址客户端（2026-10-09）
+## v0.18.1 源码发布与预设地址客户端（启动授权前，2026-10-09）
 
 - 用户明确要求向 Mysiya/DevFlow 上传源码并自行安排上线。核对电脑 Git 登录为 Mysiya 且目标仓库具备 push 权限，初始远程为空；上传前配置密钥扫描为 0。本地 codex/deploy-mobile 分支的首批提交 2edfa4265d595880fc59986a3b9dc9fc206c392b 已发布为远程 main，后续自动连接客户端提交 79f1b25d349e7f0e0d37f9dfef25af0376e6e8bd 也已上传。首个 HTTP 408 上传失败后核对远程并改用 HTTP/1.1 重试成功，没有强制推送。此前“未推送”是历史状态；本地快照提示现改为与远程提交分别管理。
 - 根目录 Dockerfile 和 infra/cloud/run_service.py 管理 Next.js、回环 API 与独立 Worker，统一数据目录，任一子进程退出时停止其余进程；启动前校验登录、Secure Cookie、HTTPS Origin、密码、端口与应用写回关闭。新增 13 项专项测试。最终启用真实向量集成的完整回归为 **337 项通过，99.80 秒，无跳过**（后端 324 项及部署 13 项）。前端生产构建、类型检查和 6 项离线策略检查通过。
 - Railway 官方匿名试用分配 HTTPS 地址，云端从已发布仓库拉取、安装锁定依赖、通过 pip check 和 Next.js 生产构建。用户明确回复“已领取”；后续源码更新构建也已完成。仍未启动业务服务：第一次 runtime.env 上传被自动审批拒绝，原因是需明确批准将具体模型密钥和管理员初始密码发送到 Railway。被拒绝的传输未执行，密钥和密码仅保存在忽略的本地文件；已提供不显示密钥的传输说明，等待单独授权。没有以其他路径绕过拒绝。
 - 安卓 0.18.1 / versionCode 19 使用 mobile/service.json 的真实分配地址，第一次打开直接连接登录页，账号密码未编入客户端。原生构建、Lint 与 v2 签名通过；新包 860821 字节，SHA-256 为 23a5b5208d0e20c4e37ea909cc38d74060fbc858d5db6ce61de9b0598951ba33，签名证书与旧包一致，可覆盖安装。回读所有 DEX 确认预设地址存在，包内配置密钥及新管理员密码匹配均为 0。实际 Lint 0 错误、2 警告，报告保留；没有手机实测，后台尚待批准后启动，不能称为已经打开即可使用。
 - 本地 API、Worker 和前端已更新，实际 APK 下载返回同一字节及附件/MIME/nosniff 头。18 条历史分析的结果/事件、17 条模型请求、原固定样本集导出、批准对象与周报没有被本轮分析或发布动作改写；没有提交新模型分析。新固定规则批次 2e292e72dc884b9b836eb0085a9498a2 为 60/60，实现指纹 1f213774a09e411ec82c8084a77313bf3d96166d6e81ebf1fa0655732e20f3d9，旧批次保留。准备核验保存在 artifacts/deploy/preparation-proof-v181.json，新 APK 证明另存 artifacts/mobile/android-apk-proof-v181.json，旧证明不覆盖。
+
+## v0.18.1 获得授权后的云端启动与交付（2026-10-09）
+
+- 用户向具体凭据传输和启动问题回复“启动”后，自动审批接受 SSH 传输。模型密钥与新管理员密码只写入已领取 VM 的 `/root/.config/devflow/runtime.env`，权限 600，数据库与源码位于 `/root/.local/share/devflow`；GitHub、APK 和静态目录不包含这些配置。首轮启动发现 Windows CRLF 会进入 shell 变量，已转换为 LF 并重传同一配置，未变更密码。
+- HTTPS 工作台 https://preview-ff00a4ca69754797.up.railway.app 已实际运行。公网检查验证首页、Secure/HttpOnly/SameSite=Strict 会话、登录与退出、未登录 API 返回 401、live 模式、后台 Worker 在线及队列空闲。APK 下载与签名核验文件完全相同，附件、APK MIME 和 nosniff 头正确。云端已接入 Mysiya/DevFlow 公共仓库，保存可读取的固定源码快照和 4 项任务 Skill；首次验收证明另存 artifacts/deploy/live-initial-proof-v181.json，最新状态保存 artifacts/deploy/live-proof-v181.json。
+- 在服务器通过官方 DeepSeek `/models` 读取认证元数据，HTTP 200 且配置的 deepseek-v4-pro 位于可用列表。这只验证认证和模型名称，本轮没有提交聊天或分析请求；云端 model_calls 为 0。不能把模型元数据检查写成实际回答质量验证。
+- 完成首次验收后，SSH 曾进入平台网络恢复控制台，公网返回平台占位页面；进程检查发现只剩本项目 API，网页与 Worker 未运行。按平台 VM 的 AGENTS.md 改用独立会话启动，空闲队列下仅停止经 cwd 与命令核对的本项目 API。新增 run_vm.sh 外层守护、配置目录锁和 PID 记录，避免重复启动，并在应用退出 5 秒后重启。
+- 实际恢复测试于 2026-10-09T14:21:24Z 完成：仅终止已核对且属于外层守护的空闲应用进程，外层 PID 未变，服务在 30 秒内恢复，仓库数据库保留，模型请求仍为 0。之后重新检查公网登录和 Worker。该检查验证应用退出恢复，没有验证 VM 重启或睡眠后自动启动；平台恢复后仍需按部署说明重新启动。
+- 登录用户名为 admin，独立密码保存在本机忽略文件 artifacts/deploy/login-info.md，单独交付。云端是新数据库，未迁移电脑历史、知识库或 Milvus；原本地分析、样本和批准对象保留。未连接安卓实机，实际键盘、导航、会话恢复与系统文件保存尚未验收。

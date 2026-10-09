@@ -8,7 +8,7 @@
 
 电脑可访问当前服务的 `/downloads/DevFlow-0.18.1-debug.apk`，或在网页“设置 → 手机应用”下载，然后把文件传到安卓手机。在手机文件管理器打开 APK，按系统提示允许当前来源安装，安装后启动 DevFlow。新包预设 mobile/service.json 中的 HTTPS 地址，第一次直接连接登录页，后续保留登录会话；无需手填地址，也没有内置账号密码。服务器必须已完成启动和认证检查，安装包生成不代表后台已上线。连接菜单仍可更换其他受信任的服务。
 
-工程在 `mobile/android/`。首次启动填写服务根地址，例如 `https://devflow.example.com`，不能填写 `127.0.0.1:3000`、API 子路径或含密码/查询参数的 URL。客户端先读取 `/api/auth/session`，确认服务启用登录，再载入工作台。登录、源码分析和后台记录使用原接口。
+工程在 `mobile/android/`。当前包首次启动使用预设地址；只有切换服务器时才需要填写新的 HTTPS 根地址，例如 `https://devflow.example.com`。不能填写 `127.0.0.1:3000`、API 子路径或含密码/查询参数的 URL。客户端先读取 `/api/auth/session`，确认服务启用登录，再载入工作台。登录、源码分析和后台记录使用原接口。
 
 底部提供概览、工作台、知识、记录和更多；更多中可切换仓库，打开代码、记忆审批、评测和设置。原生顶部可以刷新或切换服务器。切换服务会清除本机登录与页面数据，服务器任务保留。关闭客户端不取消已提交的后台任务。返回键先返回网页历史，之后退出客户端。
 
@@ -44,7 +44,15 @@ javac -encoding UTF-8 -d artifacts/android-policy-tests mobile/android/app/src/m
 java -cp artifacts/android-policy-tests ServerAddressTest
 ```
 
-## HTTPS 服务器
+## 当前上线服务
+
+入口为 [DevFlow 工作台](https://preview-ff00a4ca69754797.up.railway.app)，[安卓 0.18.1 安装包](https://preview-ff00a4ca69754797.up.railway.app/downloads/DevFlow-0.18.1-debug.apk) 使用同一预设地址。首次打开输入管理员账号 `admin` 和交付的独立密码即可使用。密码只保存在本机忽略文件 `artifacts/deploy/login-info.md` 与服务器私有配置中，不发布到 GitHub。
+
+已检查公网 HTTPS、登录与退出、未登录接口拦截、独立 Worker、仓库源码读取和 APK 下载字节。DeepSeek 的认证与模型列表读取通过，配置的 `deepseek-v4-pro` 可用；本轮没有提交聊天或分析请求。安卓实机操作仍需验证。
+
+服务器使用独立 SQLite 和关键词检索，已接入 Mysiya/DevFlow 公共仓库。电脑上的历史回答、记忆、知识库和 Milvus 索引没有自动迁入；电脑与手机连接此云端服务时共享云端新记录。运行方式与 VM 重启限制见 [云部署说明](../infra/cloud/README.md)。
+
+## 自有服务器部署
 
 准备已指向服务器公网 IP 的域名，服务器具备 Docker Compose，并允许公网访问 80/443。实际部署前需要确定服务器地址、连接方式和目标目录；本地创建部署文件不会修改远程服务器。
 
@@ -57,7 +65,7 @@ docker compose --env-file .env.mobile -f compose.yaml -f compose.mobile.yaml up 
 
 覆盖文件强制开启登录、Secure Cookie，允许写请求的 Origin 只包含该 HTTPS 域名，GitHub 写回继续关闭。Caddy 对域名提供 HTTPS，代理到前端，前端经 Docker 内部网络访问 API；公网入口为 80/443，后端、前端与 PostgreSQL 保留原回环端口绑定。Worker 与 API 使用同一认证、数据库和模型配置。
 
-服务器首次启动创建管理员。浏览器打开域名确认可登录，连接仓库并核对 API/Worker，再在 APK 中输入该域名。SDK 下载、Docker 配置准备或 APK 构建不会调用模型；实际发起 live 分析才调用已配置模型。
+服务器首次启动创建管理员。浏览器打开域名确认可登录，连接仓库并核对 API/Worker，然后用该域名编译预设地址 APK，或通过连接菜单切换旧客户端。SDK 下载、Docker 配置准备或 APK 构建不会调用模型；实际发起 live 分析才调用已配置模型。
 
 这是新的 PostgreSQL 部署环境，不自动复制现有电脑的 SQLite、模型密钥、源码缓存、知识库或向量索引。若要保留本地已有回答/记忆/样本集，应单独准备备份与迁移，并在确定目标服务器后核对。默认部署采用关键词检索；本地 Milvus/Embedding 迁移需另外配置，不能把容器配置文件当作已经完成的生产部署。
 

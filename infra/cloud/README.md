@@ -25,3 +25,18 @@ LLM_API_KEY=仅填在云平台的服务端变量中
 Railway 的匿名 VM 只用于临时验收。未领取时预览地址限制为创建网络访问，并有构建/领取期限；用户领取后才可分享，不能把临时预览称为永久上线。长期账户、可用余额、存储与续费需在平台确认。
 
 参考：[Dockerfile 构建](https://docs.railway.com/builds/dockerfiles)、[HTTPS 地址](https://docs.railway.com/networking/public-networking)、[持久卷](https://docs.railway.com/volumes)、[临时 VM](https://railway.com/free-vm)。
+
+## 当前已领取的 VM
+
+用户已领取分配的 VM，并明确批准向该机传输模型配置、独立管理员初始密码和启动服务。工作台地址为 https://preview-ff00a4ca69754797.up.railway.app；Android 0.18.1 预设同一地址。应用位于 `/app/devflow`，配置文件 `/root/.config/devflow/runtime.env` 权限为 600，数据库与源码缓存位于 `/root/.local/share/devflow`，均在公开目录之外。电脑旧数据没有自动迁移。
+
+此 VM 直接运行应用进程，没有执行 Docker 镜像。`run_vm.sh` 对同一配置目录加锁，启动 `run_service.py`，应用退出后等待 5 秒重启。它记录外层与应用 PID，接到终止信号时停止自己的子进程。按平台提供的运行说明，必须脱离 SSH 会话启动，使用 `setsid`，避免命令执行器清理 `nohup` 后台任务：
+
+```bash
+cd /app/devflow
+setsid -f sh infra/cloud/run_vm.sh </dev/null >>/root/.config/devflow/service.log 2>&1
+```
+
+`run_service.py` 管理 API、Worker 和 Next.js；只有 Next.js 监听公网端口 8080。公网认证与下载检查通过后才交付 APK。模型认证检查只访问官方 `/models`，没有发送聊天请求。
+
+外层守护处理应用进程退出，不提供跨 VM 睡眠或重启的启动保证。平台恢复时曾出现只剩 API、网页与 Worker 未运行的状态，已在空闲队列下停止经路径和命令核对的本项目 API，并以独立会话恢复完整服务。VM 睡眠、重启或平台故障后应重新启动并核对 `/api/auth/session`、登录、Worker 和下载；需要更强可用性时使用上面的 Dockerfile 部署到平台持久服务并挂载卷。不要把预览 VM 称为永久免费的高可用服务。

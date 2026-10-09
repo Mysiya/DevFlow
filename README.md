@@ -28,6 +28,8 @@ Python + FastAPI + LangGraph + Next.js 的研发协作工作台。根据[小林 
 
 安卓客户端与手机界面：v0.18 新增底部导航、触摸布局、HTTPS 连接页和原生 JSON 保存工程，使用当前 v0.18 后端；编译、外网部署和数据迁移说明见 [手机应用指南](docs/mobile-app.md)。云平台单服务部署见 [部署说明](infra/cloud/README.md)，服务地址预置进 APK 后，首次打开直接进入登录流程。
 
+已上线 [HTTPS 工作台](https://preview-ff00a4ca69754797.up.railway.app)，[安卓 APK 0.18.1](https://preview-ff00a4ca69754797.up.railway.app/downloads/DevFlow-0.18.1-debug.apk) 预设该地址，安装后登录即可连接。账号密码单独交付，服务器使用新的数据库，本机历史没有自动迁移。手机实机验收尚未完成。
+
 | 模式 | 数据来源 | 分析方式 | 配置要求 |
 | --- | --- | --- | --- |
 | `demo`（默认） | 自带 `demo/devflow-shop` 样例 | 确定性规则，**没有调用大模型** | 不需要密钥和 Docker |

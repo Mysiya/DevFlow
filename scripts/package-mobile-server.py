@@ -13,6 +13,10 @@ from app.config import Settings
 settings=Settings(_env_file=ROOT/'backend/.env')
 fields=('github_token','llm_api_key','embedding_api_key','rerank_api_key','milvus_token','bootstrap_admin_password','mcp_access_token','github_webhook_secret')
 secrets=[getattr(settings,name).get_secret_value().encode() for name in fields if getattr(settings,name).get_secret_value()]
+cloud_login=ROOT/'artifacts/deploy/login.json'
+if cloud_login.is_file():
+    password=json.loads(cloud_login.read_text(encoding='utf-8')).get('password')
+    if password:secrets.append(password.encode())
 names=subprocess.check_output(['git','ls-files','--cached','--others','--exclude-standard'],cwd=ROOT,text=True).splitlines()
 output=ROOT/'artifacts/mobile';output.mkdir(parents=True,exist_ok=True)
 files=[]
