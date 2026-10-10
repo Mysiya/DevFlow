@@ -155,7 +155,7 @@ LLM_MAX_TOKENS=4096
 LLM_REASONING_EFFORT=none
 ```
 
-`none` 关闭思考模式，可改为 `low` / `high` / `max`。工具调用续轮保留模型返回的 `reasoning_content`。其他供应商不支持此参数时，删除 `LLM_REASONING_EFFORT` 配置。密钥只由后端读取，不返回给前端。
+DeepSeek 官方接口中，`none` 映射为 `thinking.type=disabled`；`low` / `high` / `max` 则启用思考并设置强度。按[供应商协议](https://api-docs.deepseek.com/guides/thinking_mode/)区分开关和强度，避免默认思考消耗掉有界输出。工具调用续轮保留模型返回的 `reasoning_content`。其他供应商继续接收原 `reasoning_effort` 参数；不支持时删除此配置。密钥只由后端读取，不返回给前端。
 
 ## 登录、记忆与草稿审批
 

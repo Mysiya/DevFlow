@@ -1,6 +1,7 @@
 import json
 import asyncio
 from time import perf_counter
+from urllib.parse import urlsplit
 
 import httpx
 
@@ -20,7 +21,15 @@ class ModelClient:
             raise ValueError("真实模式需要在 backend/.env 配置 LLM_API_KEY 和 LLM_MODEL。")
         payload = {"model": self.settings.llm_model, "messages": messages, "temperature": 0.2, "max_tokens": self.settings.llm_max_tokens}
         if self.settings.llm_reasoning_effort is not None:
-            payload["reasoning_effort"] = self.settings.llm_reasoning_effort
+            if urlsplit(self.settings.llm_base_url).hostname == "api.deepseek.com":
+                # DeepSeek Chat Completions controls off with thinking.type,
+                # while reasoning_effort controls enabled thinking's intensity.
+                disabled = self.settings.llm_reasoning_effort == "none"
+                payload["thinking"] = {"type": "disabled" if disabled else "enabled"}
+                if not disabled:
+                    payload["reasoning_effort"] = self.settings.llm_reasoning_effort
+            else:
+                payload["reasoning_effort"] = self.settings.llm_reasoning_effort
         if tools:
             payload["tools"] = tools
         if structured:

@@ -15,6 +15,8 @@ BOOTSTRAP_ADMIN_PASSWORD=自行生成的独立长密码
 DEVFLOW_MODE=live
 LLM_BASE_URL=https://api.deepseek.com
 LLM_MODEL=deepseek-v4-pro
+LLM_MAX_TOKENS=4096
+LLM_REASONING_EFFORT=none
 LLM_API_KEY=仅填在云平台的服务端变量中
 ```
 
