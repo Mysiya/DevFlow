@@ -9,15 +9,16 @@ RUN npm run build
 FROM python:3.12-slim
 ENV PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1 NODE_ENV=production
 WORKDIR /app
-RUN apt-get update && apt-get install -y --no-install-recommends git ca-certificates && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends git ca-certificates libstdc++6 && rm -rf /var/lib/apt/lists/*
 COPY backend/requirements.lock.txt ./backend/requirements.lock.txt
 RUN pip install --no-cache-dir -r backend/requirements.lock.txt
 COPY --from=web /usr/local/bin/node /usr/local/bin/node
-COPY --from=web /app/frontend/ ./frontend/
+RUN node --version
+COPY --from=web --chown=10001:10001 /app/frontend/ ./frontend/
 COPY backend/app/ ./backend/app/
 COPY backend/skills/ ./backend/skills/
 COPY infra/cloud/run_service.py ./infra/cloud/run_service.py
-RUN useradd --create-home --uid 10001 devflow && mkdir -p /app/data && chown -R devflow:devflow /app
+RUN useradd --create-home --uid 10001 devflow && mkdir -p /app/data && chown devflow:devflow /app/data
 USER devflow
 ENV PORT=8080 DEVFLOW_DATA_DIR=/app/data
 EXPOSE 8080
