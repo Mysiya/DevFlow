@@ -50,7 +50,7 @@ public final class MainActivity extends Activity {
         progress=new ProgressBar(this,null,android.R.attr.progressBarStyleHorizontal);progress.setVisibility(View.GONE);root.addView(progress,new LinearLayout.LayoutParams(-1,dp(3)));
         body=new LinearLayout(this);body.setOrientation(LinearLayout.VERTICAL);root.addView(body,new LinearLayout.LayoutParams(-1,0,1));
         if(Build.VERSION.SDK_INT>=33)getOnBackInvokedDispatcher().registerOnBackInvokedCallback(android.window.OnBackInvokedDispatcher.PRIORITY_DEFAULT,this::back);
-        String configured=getPreferences(MODE_PRIVATE).getString("server",BuildConfig.DEFAULT_SERVER_URL);
+        String configured=ServerAddress.initialServer(getPreferences(MODE_PRIVATE).getString("server",null),BuildConfig.DEFAULT_SERVER_URL);
         if(configured.isEmpty())setup("");else connect(configured);
     }
     private int dp(int value){return (int)(value*getResources().getDisplayMetrics().density+.5f);}
@@ -87,7 +87,7 @@ public final class MainActivity extends Activity {
     private void openWeb(){
         body.removeAllViews();web=new WebView(this);WebSettings settings=web.getSettings();settings.setJavaScriptEnabled(true);settings.setDomStorageEnabled(true);settings.setAllowFileAccess(false);settings.setAllowContentAccess(false);
         settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);settings.setCacheMode(WebSettings.LOAD_NO_CACHE);settings.setSupportMultipleWindows(true);settings.setJavaScriptCanOpenWindowsAutomatically(false);
-        settings.setUserAgentString(settings.getUserAgentString()+" DevFlowAndroid/0.18.1");CookieManager.getInstance().setAcceptCookie(true);CookieManager.getInstance().setAcceptThirdPartyCookies(web,false);
+        settings.setUserAgentString(settings.getUserAgentString()+" DevFlowAndroid/"+BuildConfig.VERSION_NAME);CookieManager.getInstance().setAcceptCookie(true);CookieManager.getInstance().setAcceptThirdPartyCookies(web,false);
         web.setWebViewClient(new WebViewClient(){
             @Override public boolean shouldOverrideUrlLoading(WebView view,WebResourceRequest request){return route(request.getUrl().toString(),request.hasGesture());}
             @Override public boolean shouldOverrideUrlLoading(WebView view,String url){return route(url,true);}

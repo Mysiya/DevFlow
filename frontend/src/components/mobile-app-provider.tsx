@@ -50,7 +50,7 @@ export function MobileInstallPanel() {
   const app=useMobileApp();
   return <section className="panel mobile-install-panel"><div className="panel-heading"><h3><Smartphone size={19}/>手机应用</h3><span className="tag">{app.nativeAndroid?"安卓客户端":app.installed?"已安装":"手机安装"}</span></div>
     <p>在手机上查看源码、发起分析和跟踪后台任务。手机与电脑使用同一服务、同一份记录。</p>
-    {!app.nativeAndroid&&!app.ios&&<div className="mobile-apk-download"><a className="button primary" href="/downloads/DevFlow-0.18.1-debug.apk" download="DevFlow-0.18.1-debug.apk"><Download size={17}/>下载安卓版 APK</a><p className="small-muted">v0.18.1 · 安卓 8.0 及以上 · 测试安装包。预设服务地址，打开后登录使用，需要联网。</p></div>}
+    {!app.nativeAndroid&&!app.ios&&<div className="mobile-apk-download"><a className="button primary" href="/downloads/DevFlow-0.18.2-debug.apk" download="DevFlow-0.18.2-debug.apk"><Download size={17}/>下载安卓版 APK</a><p className="small-muted">v0.18.2 · 安卓 8.0 及以上 · 测试安装包。预设服务地址，打开后登录使用，需要联网。</p></div>}
     {app.installed?<p className="review-note">你正在独立应用窗口中使用 DevFlow。</p>:<>
       {app.canInstall&&app.secure?<button className="button secondary" type="button" onClick={()=>void app.install()}><Download size={17}/>安装手机网页版</button>:
         <p className="review-note">{!app.secure?"当前地址可预览手机版。添加到主屏幕需要可访问的 HTTPS 服务地址。":app.ios?"在 Safari 打开此页面，点“分享”，选择“添加到主屏幕”，再点“添加”。":"在手机浏览器菜单选择“安装应用”或“添加到主屏幕”。浏览器支持时，这里也会显示安装按钮。"}</p>}

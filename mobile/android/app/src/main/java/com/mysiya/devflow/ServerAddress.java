@@ -6,6 +6,14 @@ import java.util.Locale;
 /** HTTPS origin parsing is shared by setup, navigation and authenticated exports. */
 public final class ServerAddress {
     private ServerAddress() {}
+    /** Move the retired preview endpoint on upgrade; keep user-selected servers. */
+    public static String initialServer(String saved, String configured) {
+        if (saved == null || saved.isEmpty()) return configured;
+        try {
+            if (normalize(saved).equals("https://preview-ff00a4ca69754797.up.railway.app/")) return configured;
+        } catch (IllegalArgumentException ignored) { }
+        return saved;
+    }
     private static URI parse(String value) {
         try {
             URI uri = new URI(value.trim());

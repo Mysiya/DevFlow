@@ -4,9 +4,9 @@
 
 ## 安卓安装包
 
-最新客户端为 0.18.1 / versionCode 19，安装包位于 `artifacts/mobile/DevFlow-0.18.1-debug.apk`，包名 `com.mysiya.devflow`，沿用原测试签名，可覆盖安装旧版。它是个人测试包，手机实机验收与原生编译核验分别记录。
+最新客户端为 0.18.2 / versionCode 20，安装包位于 `artifacts/mobile/DevFlow-0.18.2-debug.apk`，包名 `com.mysiya.devflow`，沿用原测试签名，可覆盖安装旧版。它是个人测试包，手机实机验收与原生编译核验分别记录。
 
-电脑可访问当前服务的 `/downloads/DevFlow-0.18.1-debug.apk`，或在网页“设置 → 手机应用”下载，然后把文件传到安卓手机。在手机文件管理器打开 APK，按系统提示允许当前来源安装，安装后启动 DevFlow。新包预设 mobile/service.json 中的 HTTPS 地址，第一次直接连接登录页，后续保留登录会话；无需手填地址，也没有内置账号密码。服务器必须已完成启动和认证检查，安装包生成不代表后台已上线。连接菜单仍可更换其他受信任的服务。
+电脑可访问当前服务的 `/downloads/DevFlow-0.18.2-debug.apk`，或在网页“设置 → 手机应用”下载，然后把文件传到安卓手机。在手机文件管理器打开 APK，按系统提示允许当前来源安装，安装后启动 DevFlow。新包预设 mobile/service.json 中的 HTTPS 地址，第一次直接连接登录页，后续保留登录会话；无需手填地址，也没有内置账号密码。服务器必须已完成启动和认证检查，安装包生成不代表后台已上线。连接菜单仍可更换其他受信任的服务。
 
 工程在 `mobile/android/`。当前包首次启动使用预设地址；只有切换服务器时才需要填写新的 HTTPS 根地址，例如 `https://devflow.example.com`。不能填写 `127.0.0.1:3000`、API 子路径或含密码/查询参数的 URL。客户端先读取 `/api/auth/session`，确认服务启用登录，再载入工作台。登录、源码分析和后台记录使用原接口。
 
@@ -32,9 +32,9 @@
 .\scripts\build-android.ps1 -AcceptSdkLicense -ServerUrl 'https://你的域名'
 ```
 
-未传 ServerUrl 时默认读取 mobile/service.json，只接受不带凭据、路径或参数的 HTTPS 根地址。脚本只安装本工程需要的 SDK 包，生成本地测试签名，执行 APK 构建、Android Lint 和签名验证。成功后安装包复制到 `artifacts/mobile/DevFlow-0.18.1-debug.apk`。这是用于个人安装联调的测试包；商店分发需要独立维护正式签名、应用说明和相应发布流程。保留当前测试签名私钥才能覆盖安装后续同签名版本。
+未传 ServerUrl 时默认读取 mobile/service.json，只接受不带凭据、路径或参数的 HTTPS 根地址。脚本只安装本工程需要的 SDK 包，生成本地测试签名，执行 APK 构建、Android Lint 和签名验证。成功后安装包复制到 `artifacts/mobile/DevFlow-0.18.2-debug.apk`。这是用于个人安装联调的测试包；商店分发需要独立维护正式签名、应用说明和相应发布流程。保留当前测试签名私钥才能覆盖安装后续同签名版本。
 
-`scripts/verify-android.py` 另行核对包名、版本、最小系统、权限、编译后的 Manifest、签名、Lint 和解压后的凭据匹配，还回读所有 DEX 中的预设地址；证明保存在 `artifacts/mobile/android-apk-proof-v181.json`，旧版证明保留。0.18.1 的实际 Lint 报告为 0 错误、2 警告：低系统忽略返回属性及开启 JavaScript；旧包报告的 4 项提示保留在原证明中。Next.js 工作台需要 JavaScript，WebView 限制 HTTPS 同域且没有原生 JS 接口，没有添加警告屏蔽。按 [Android 备份规则](https://developer.android.com/identity/data/autobackup)明确排除云备份和设备迁移中的应用数据，编译结果已核对；实际厂商系统行为仍需手机验证。
+`scripts/verify-android.py` 另行核对包名、版本、最小系统、权限、编译后的 Manifest、签名、Lint 和解压后的凭据匹配，还回读所有 DEX 中的预设地址；证明保存在 `artifacts/mobile/android-apk-proof-v182.json`，旧版证明保留。0.18.2 的实际 Lint 报告为 0 错误、2 警告：低系统忽略返回属性及开启 JavaScript；旧包报告的 4 项提示保留在原证明中。Next.js 工作台需要 JavaScript，WebView 限制 HTTPS 同域且没有原生 JS 接口，没有添加警告屏蔽。按 [Android 备份规则](https://developer.android.com/identity/data/autobackup)明确排除云备份和设备迁移中的应用数据，编译结果已核对；实际厂商系统行为仍需手机验证。
 
 地址校验可在没有 SDK 时用 JDK 单独验证：
 
@@ -44,13 +44,13 @@ javac -encoding UTF-8 -d artifacts/android-policy-tests mobile/android/app/src/m
 java -cp artifacts/android-policy-tests ServerAddressTest
 ```
 
-## 当前上线服务
+## 正式服务迁移
 
-入口为 [DevFlow 工作台](https://preview-ff00a4ca69754797.up.railway.app)，[安卓 0.18.1 安装包](https://preview-ff00a4ca69754797.up.railway.app/downloads/DevFlow-0.18.1-debug.apk) 使用同一预设地址。首次打开输入管理员账号 `admin` 和交付的独立密码即可使用。密码只保存在本机忽略文件 `artifacts/deploy/login-info.md` 与服务器私有配置中，不发布到 GitHub。
+入口为 [DevFlow 工作台](https://devflow-production-ef63.up.railway.app)，[安卓 0.18.2 安装包](https://devflow-production-ef63.up.railway.app/downloads/DevFlow-0.18.2-debug.apk) 使用同一预设地址。首次打开输入管理员账号 `admin` 和交付的独立密码即可使用。密码只保存在本机忽略文件 `artifacts/deploy/login-info.md` 与服务器私有配置中，不发布到 GitHub。
 
-已检查公网 HTTPS、登录与退出、未登录接口拦截、独立 Worker、仓库源码读取和 APK 下载字节。DeepSeek 的认证与模型列表读取通过，配置的 `deepseek-v4-pro` 可用；本轮没有提交聊天或分析请求。安卓实机操作仍需验证。
+旧预览 VM 曾通过公网接口检查，后来仍返回平台欢迎页，不能作为正式可用性证明。现改用 Railway 常规服务，已配置 Dockerfile、持久卷、健康检查和重启策略。0.18.2 编译、签名、Lint、预设域名和凭据扫描已通过；正式域名的实际部署、真实分析与重启保留数据检查正在进行。安卓实机操作仍需验证。
 
-服务器使用独立 SQLite 和关键词检索，已接入 Mysiya/DevFlow 公共仓库。电脑上的历史回答、记忆、知识库和 Milvus 索引没有自动迁入；电脑与手机连接此云端服务时共享云端新记录。运行方式与 VM 重启限制见 [云部署说明](../infra/cloud/README.md)。
+服务器使用独立 SQLite 和关键词检索，准备接入 Mysiya/DevFlow 公共仓库。电脑上的历史回答、记忆、知识库和 Milvus 索引没有自动迁入；电脑与手机连接此云端服务时共享云端新记录。运行方式与 VM 重启限制见 [云部署说明](../infra/cloud/README.md)。
 
 ## 自有服务器部署
 

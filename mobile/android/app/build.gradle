@@ -16,8 +16,8 @@ android {
         applicationId 'com.mysiya.devflow'
         minSdk 26
         targetSdk 35
-        versionCode 19
-        versionName '0.18.1'
+        versionCode 20
+        versionName '0.18.2'
         buildConfigField 'String', 'DEFAULT_SERVER_URL', groovy.json.JsonOutput.toJson(serverUrl)
     }
     buildFeatures { buildConfig true }

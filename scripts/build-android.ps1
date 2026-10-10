@@ -3,6 +3,9 @@ $ErrorActionPreference='Stop'
 $taskRoot=Split-Path -Parent $PSScriptRoot
 $taskProject=Join-Path $taskRoot 'mobile\android'
 $taskTools=Join-Path $taskProject '.local'
+$taskVersionMatch=Select-String -LiteralPath (Join-Path $taskProject 'app\build.gradle') -Pattern "versionName '([0-9]+\.[0-9]+\.[0-9]+)'"
+if (!$taskVersionMatch) { throw 'Android versionName is missing.' }
+$taskApkName='DevFlow-'+$taskVersionMatch.Matches[0].Groups[1].Value+'-debug.apk'
 $taskPython=Join-Path $taskRoot '.venv\Scripts\python.exe'
 if (!$AcceptSdkLicense) { throw 'Read https://developer.android.com/studio#downloads, then use -AcceptSdkLicense only if you explicitly agree to the Android SDK license.' }
 $taskServiceConfig=Join-Path $taskRoot 'mobile\service.json'
@@ -66,10 +69,10 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'APK build or Android lint failed.' }
     $taskDelivery=Join-Path $taskRoot 'artifacts\mobile'
     New-Item -ItemType Directory -Force -Path $taskDelivery | Out-Null
-    Copy-Item -LiteralPath (Join-Path $taskProject 'app\build\outputs\apk\debug\app-debug.apk') -Destination (Join-Path $taskDelivery 'DevFlow-0.18.1-debug.apk')
-    & (Join-Path $env:ANDROID_HOME 'build-tools\36.0.0\apksigner.bat') verify --verbose --print-certs (Join-Path $taskDelivery 'DevFlow-0.18.1-debug.apk')
+    Copy-Item -LiteralPath (Join-Path $taskProject 'app\build\outputs\apk\debug\app-debug.apk') -Destination (Join-Path $taskDelivery $taskApkName)
+    & (Join-Path $env:ANDROID_HOME 'build-tools\36.0.0\apksigner.bat') verify --verbose --print-certs (Join-Path $taskDelivery $taskApkName)
     if ($LASTEXITCODE -ne 0) { throw 'APK signature verification failed.' }
     $taskDownloads=Join-Path $taskRoot 'frontend\public\downloads'
     New-Item -ItemType Directory -Force -Path $taskDownloads | Out-Null
-    Copy-Item -LiteralPath (Join-Path $taskDelivery 'DevFlow-0.18.1-debug.apk') -Destination (Join-Path $taskDownloads 'DevFlow-0.18.1-debug.apk')
+    Copy-Item -LiteralPath (Join-Path $taskDelivery $taskApkName) -Destination (Join-Path $taskDownloads $taskApkName)
 } finally { Pop-Location }

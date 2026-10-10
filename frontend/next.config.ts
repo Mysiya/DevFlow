@@ -7,6 +7,7 @@ const nextConfig: NextConfig = {
       {source:"/api/:path*",headers:[{key:"Cache-Control",value:"no-store"}]},
       {source:"/downloads/DevFlow-0.18-debug.apk",headers:[{key:"Content-Type",value:"application/vnd.android.package-archive"},{key:"Content-Disposition",value:'attachment; filename="DevFlow-0.18-debug.apk"'},{key:"X-Content-Type-Options",value:"nosniff"}]},
       {source:"/downloads/DevFlow-0.18.1-debug.apk",headers:[{key:"Content-Type",value:"application/vnd.android.package-archive"},{key:"Content-Disposition",value:'attachment; filename="DevFlow-0.18.1-debug.apk"'},{key:"X-Content-Type-Options",value:"nosniff"}]},
+      {source:"/downloads/DevFlow-0.18.2-debug.apk",headers:[{key:"Content-Type",value:"application/vnd.android.package-archive"},{key:"Content-Disposition",value:'attachment; filename="DevFlow-0.18.2-debug.apk"'},{key:"X-Content-Type-Options",value:"nosniff"}]},
       {source:"/offline.html",headers:[{key:"Content-Security-Policy",value:"default-src 'none'; img-src 'self'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"}]},
     ];
   },

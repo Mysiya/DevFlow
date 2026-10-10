@@ -18,10 +18,10 @@ settings=Settings(_env_file=ROOT/'backend/.env')
 fields=('github_token','llm_api_key','embedding_api_key','rerank_api_key','milvus_token','bootstrap_admin_password','mcp_access_token','github_webhook_secret')
 secrets=[getattr(settings,name).get_secret_value().encode() for name in fields if getattr(settings,name).get_secret_value()]
 parser=argparse.ArgumentParser()
-parser.add_argument('--version',choices=['0.18.0','0.18.1'],default='0.18.1')
+parser.add_argument('--version',choices=['0.18.0','0.18.1','0.18.2'],default='0.18.2')
 args=parser.parse_args()
-label='v18' if args.version=='0.18.0' else 'v181'
-code=18 if args.version=='0.18.0' else 19
+label='v18' if args.version=='0.18.0' else 'v'+args.version.replace('.','')[1:]
+code={'0.18.0':18,'0.18.1':19,'0.18.2':20}[args.version]
 file_version='0.18' if args.version=='0.18.0' else args.version
 delivery=ROOT/'artifacts/mobile';tools=ROOT/'mobile/android/.local'
 apk=delivery/f'DevFlow-{file_version}-debug.apk'
@@ -51,8 +51,9 @@ with zipfile.ZipFile(apk) as package:
     assert not any(name.endswith(('.env','.keystore','.jks','.db')) for name in names)
     for name in names:
         assert not any(secret in package.read(name) for secret in secrets),'Configured credential in APK'
-    if args.version=='0.18.1':
-        server=json.loads((ROOT/'mobile/service.json').read_text(encoding='utf-8'))['server_url']
+    if args.version in ('0.18.1','0.18.2'):
+        server=('https://preview-ff00a4ca69754797.up.railway.app' if args.version=='0.18.1'
+                else json.loads((ROOT/'mobile/service.json').read_text(encoding='utf-8'))['server_url'])
         assert any(server.encode() in package.read(name) for name in names if name.endswith('.dex')),'Default HTTPS service missing from delivered APK'
 consent=json.loads((tools/'sdk-consent.json').read_text(encoding='utf-8'))
 assert consent['accepted_explicitly'] is True
@@ -65,7 +66,7 @@ proof={'package':'com.mysiya.devflow','version':args.version,'version_code':code
        'lint_errors':0,'lint_warnings':len(issues),'lint_issues':issues,'configured_secret_matches':0,
        'sdk_license_approval_received':True,'sdk_archive_sha256_verified':True,
        'cleartext_disabled':True,'backup_rules_declared':True,'android_device_verified':False,'service_runtime_checked':False}
-if args.version=='0.18.1':proof.update({'default_https_service':server,'default_service_embedded':True})
+if args.version in ('0.18.1','0.18.2'):proof.update({'default_https_service':server,'default_service_embedded':True})
 for name,text in [(f'apk-signature-{label}.txt',signature),(f'apk-badging-{label}.txt',badging),(f'apk-manifest-{label}.txt',manifest)]:
     (delivery/name).write_text(text,encoding='utf-8')
 (delivery/f'android-apk-proof-{label}.json').write_text(json.dumps(proof,ensure_ascii=False,indent=2),encoding='utf-8')

@@ -12,6 +12,14 @@ public final class ServerAddressTest {
         for(String invalid:new String[]{"https://example.com.evil.test/api","https://evil-example.com/api","https://example.com:8443/api","http://example.com/api","https://user@example.com/api","//example.com/api","data:text/html,content","intent://example.com","https://example.com%2eevil.test/api"})check(!ServerAddress.sameOrigin("https://example.com/",invalid));
         check(ServerAddress.externalHttps("https://github.com/Mysiya/DevFlow"));
         check(!ServerAddress.externalHttps("https://user:secret@github.com/"));
+        String production="https://devflow-production-ef63.up.railway.app";
+        check(ServerAddress.initialServer(null,production).equals(production));
+        check(ServerAddress.initialServer("",production).equals(production));
+        check(ServerAddress.initialServer("https://preview-ff00a4ca69754797.up.railway.app",production).equals(production));
+        check(ServerAddress.initialServer("https://preview-ff00a4ca69754797.up.railway.app:443/",production).equals(production));
+        check(ServerAddress.initialServer("https://team.example.com/",production).equals("https://team.example.com/"));
+        check(ServerAddress.initialServer("https://preview-ff00a4ca69754797.up.railway.app:8443/",production).endsWith(":8443/"));
+        check(ServerAddress.initialServer("https://preview-ff00a4ca69754797.up.railway.app.evil.test/",production).endsWith(".evil.test/"));
         System.out.println(checks+" address policy checks passed");
     }
 }
