@@ -44,13 +44,13 @@ javac -encoding UTF-8 -d artifacts/android-policy-tests mobile/android/app/src/m
 java -cp artifacts/android-policy-tests ServerAddressTest
 ```
 
-## 正式服务迁移
+## 当前上线服务
 
 入口为 [DevFlow 工作台](https://devflow-production-ef63.up.railway.app)，[安卓 0.18.2 安装包](https://devflow-production-ef63.up.railway.app/downloads/DevFlow-0.18.2-debug.apk) 使用同一预设地址。首次打开输入管理员账号 `admin` 和交付的独立密码即可使用。密码只保存在本机忽略文件 `artifacts/deploy/login-info.md` 与服务器私有配置中，不发布到 GitHub。
 
-旧预览 VM 曾通过公网接口检查，后来仍返回平台欢迎页，不能作为正式可用性证明。现改用 Railway 常规服务，已配置 Dockerfile、持久卷、健康检查和重启策略。0.18.2 编译、签名、Lint、预设域名和凭据扫描已通过；正式域名的实际部署、真实分析与重启保留数据检查正在进行。安卓实机操作仍需验证。
+旧预览 VM 曾通过公网接口检查，后来仍返回平台欢迎页，现已改用 Railway 常规服务，配置 Dockerfile、持久卷、健康检查和重启策略。2026-10-10 已确认对应部署为 SUCCESS，公网登录、Worker、源码同步与 APK 下载通过；一次真实 DeepSeek V4 Pro 源码分析完成，主动断开 SSE 后按事件编号重连，完整重放后续 21 个事件。实际重启服务后，原登录会话、完成与失败记录、模型用量和 166 个源码文件保持一致。0.18.2 编译、签名、Lint、预设域名和凭据扫描已通过；安卓实机操作仍需验证。
 
-服务器使用独立 SQLite 和关键词检索，准备接入 Mysiya/DevFlow 公共仓库。电脑上的历史回答、记忆、知识库和 Milvus 索引没有自动迁入；电脑与手机连接此云端服务时共享云端新记录。运行方式与 VM 重启限制见 [云部署说明](../infra/cloud/README.md)。
+服务器使用独立 SQLite 和关键词检索，已接入 Mysiya/DevFlow 公共仓库及 README 知识库。电脑上的历史回答、记忆、知识库和 Milvus 索引没有自动迁入；电脑与手机连接此云端服务时共享云端新记录。覆盖安装仅自动替换原固定预览地址，自定义服务地址继续保留，新域名需要重新登录。GitHub 自动部署尚未连接，后续代码发布需单独上传服务。运行配置见 [云部署说明](../infra/cloud/README.md)，本次验收范围见 [验证记录](verification.md)。
 
 ## 自有服务器部署
 
