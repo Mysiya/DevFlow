@@ -2,7 +2,7 @@ import asyncio
 import copy
 import json
 import logging
-from urllib.parse import quote
+from urllib.parse import quote, urlsplit
 
 import httpx
 
@@ -110,7 +110,7 @@ class GitHubClient:
 
     @staticmethod
     def run_info(x: dict):
-        return {"id": x["id"], "name": x.get("name") or "Workflow", "status": x["status"], "conclusion": x.get("conclusion"), "head_sha": x["head_sha"], "url": x["html_url"], "created_at": x["created_at"]}
+        return {"id": x["id"], "name": x.get("name") or "Workflow", "status": x["status"], "conclusion": x.get("conclusion"), "head_sha": x["head_sha"], "url": x["html_url"], "created_at": x["created_at"], "run_attempt": x.get("run_attempt", 1)}
 
     async def issue(self, repo: str, number: int):
         data = await self.get(f"/repos/{repo}/issues/{number}")
@@ -124,29 +124,48 @@ class GitHubClient:
         return {"number": number, "title": data["title"], "body": data.get("body") or "", "head_sha": data["head"]["sha"], "base_sha": data["base"]["sha"], "url": data["html_url"], "files": [{k: x.get(k) for k in ("filename", "status", "additions", "deletions", "patch")} for x in files], "checks": [self.run_info(x) for x in checks["workflow_runs"]], "coverage": "最多 100 个变更文件、30 次该 head SHA 的 Actions；不含外部 CI、分支保护和全部 Review，不能据此保证可合入。"}
 
     async def ci(self, repo: str, run_id: int):
-        data, jobs = await asyncio.gather(self.get(f"/repos/{repo}/actions/runs/{run_id}"), self.get(f"/repos/{repo}/actions/runs/{run_id}/jobs", {"per_page": 100}))
+        data = await self.get(f"/repos/{repo}/actions/runs/{run_id}")
         result = self.run_info(data)
+        # A run can be rerun between reads. Pin jobs to the observed attempt,
+        # rather than silently combining the previous run with the latest jobs.
+        jobs = await self.get(f"/repos/{repo}/actions/runs/{run_id}/attempts/{result['run_attempt']}/jobs", {"per_page": 100})
         logs, gaps = [], []
+        if jobs.get("total_count", len(jobs["jobs"])) > len(jobs["jobs"]):
+            gaps.append("只读取当前轮次前 100 个 job，未覆盖其余 job。")
         failed = [x for x in jobs["jobs"] if x.get("conclusion") in ("failure", "timed_out")]
         for job in failed[:3]:
-            response = await self.client.get(f"/repos/{repo}/actions/jobs/{job['id']}/logs", follow_redirects=False)
-            if response.status_code not in (301, 302, 303, 307, 308) or not response.headers.get("location", "").startswith("https://"):
-                gaps.append(f"无法获取 {job['name']} 日志，可能缺少 Actions read 权限或日志已过期。")
-                continue
-            # Download signed logs without forwarding the GitHub Authorization header.
-            async with httpx.AsyncClient(timeout=30) as download:
-                async with download.stream("GET", response.headers["location"]) as log_response:
-                    log_response.raise_for_status()
-                    chunks, size = [], 0
-                    async for chunk in log_response.aiter_bytes():
-                        remaining = 512_000 - size
-                        chunks.append(chunk[:remaining])
-                        size += len(chunk)
-                        if size >= 512_000:
-                            gaps.append(f"{job['name']} 日志截断至 512 KB。")
-                            break
-                    logs.append(f"Job: {job['name']}\n" + b"".join(chunks).decode("utf-8", errors="replace"))
+            try:
+                response = await self.client.get(f"/repos/{repo}/actions/jobs/{job['id']}/logs", follow_redirects=False)
+                location = response.headers.get("location", "")
+                parsed = urlsplit(location)
+                if (response.status_code not in (301, 302, 303, 307, 308)
+                        or parsed.scheme != "https" or not parsed.hostname or parsed.username or parsed.password):
+                    gaps.append(f"无法获取 {job['name']} 日志，可能缺少 Actions read 权限或日志已过期。")
+                    continue
+                # Download signed logs without forwarding the GitHub Authorization header.
+                async with httpx.AsyncClient(timeout=30) as download:
+                    async with download.stream("GET", location) as log_response:
+                        log_response.raise_for_status()
+                        chunks, size = [], 0
+                        async for chunk in log_response.aiter_bytes():
+                            remaining = 512_000 - size
+                            chunks.append(chunk[:remaining])
+                            size += len(chunk)
+                            if size >= 512_000:
+                                gaps.append(f"{job['name']} 日志截断至 512 KB。")
+                                break
+                        logs.append(f"Job: {job['name']}\n" + b"".join(chunks).decode("utf-8", errors="replace"))
+            except (httpx.HTTPError, httpx.InvalidURL, ValueError):
+                # Keep public job/step evidence when one signed download fails.
+                # Exception text may contain signed URLs; never return it.
+                gaps.append(f"{job['name']} 日志请求失败，已保留 job 与步骤状态，根因仍需核对。")
         if len(failed) > 3:
             gaps.append("只读取前三个失败 job 的日志。")
-        result.update(logs="\n".join(logs)[:25000], log_gaps=gaps, jobs=[{"name": x["name"], "conclusion": x.get("conclusion")} for x in jobs["jobs"]])
+        combined = "\n".join(logs)
+        if len(combined) > 25000:
+            gaps.append("合并日志截断至 25000 字符，不能据此认定已读取完整失败日志。")
+        result.update(logs=combined[:25000], log_gaps=gaps, jobs=[{
+            "id": x["id"], "name": x["name"], "status": x.get("status"), "conclusion": x.get("conclusion"),
+            "url": x.get("html_url", ""), "steps": [{key: step.get(key) for key in ("number", "name", "status", "conclusion")} for step in x.get("steps", [])],
+        } for x in jobs["jobs"]])
         return result

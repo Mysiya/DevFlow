@@ -8,6 +8,8 @@ PR 检查固定检出 PR head SHA，主分支检查固定检出触发提交。Gi
 
 `diagnosis-drill.yml` 只在手动触发时运行，名称明确标记诊断演练。唯一 job 输出 `DEVFLOW_CI_DIAGNOSIS_DRILL` 并以预定的 42 退出，用来验收真实 GitHub 失败日志读取与模型证据引用；它没有运行应用测试，不能将它报告成业务测试缺陷。该演练失败与正常 DevFlow checks 的检查结果分别记录。PR 协作分析仍只关联其当前 head SHA 的 run，不用其他提交的演练替代当前 CI。
 
+CI 证据固定读取观察到的 `run_attempt`，保留 job ID、链接及各步骤状态。签名日志下载失败时保留这些证据并记录缺口，不使整次查询失败，也不回传含签名的异常 URL。最多读取当前轮次 100 个 job 和前三个失败 job 日志，每份最多 512 KB，合并最多 25000 字符；保存给模型的 CI 证据正文最多 15000 字符，各层截断均明确提示。GitHub 凭据只发送给官方 API，下载签名日志的独立客户端不携带该凭据。正式服务未设置 GitHub Token 时，可查询公开 job 和步骤；若平台拒绝匿名下载日志，结果必须保留日志缺口，不能报告已确认根因。
+
 Railway 正式服务已连接 Mysiya/DevFlow 的 main，后续推送触发自动构建。该连接本身没有设置“等待 CI”，当前代码应先通过本机检查并核对 Actions，再用于正式部署；不要把服务部署成功当成 CI 已通过。后续需要平台审批或分支保护时，应单独配置并核对账号权限。
 
 参考：[GitHub 工作流语法](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax)、[Actions job 日志与固定重跑轮次](https://docs.github.com/en/rest/actions/workflow-jobs)。

@@ -129,7 +129,11 @@ class Tools:
             result = await self.github.ci(repo, run_id) if self.github else demo_ci(run_id)
             if self.expected_ci_sha and result["head_sha"] != self.expected_ci_sha:
                 raise RuntimeError("CI 提交与本次 PR 分析的 head SHA 不匹配，已停止关联分析。")
-            self.add_evidence(f"ci:{run_id}", f"CI #{run_id} · {result['name']}", str(result.get("jobs", [])) + "\n" + result["logs"], result.get("url", ""), result["head_sha"])
+            body = str(result.get("jobs", [])) + "\n" + result["logs"]
+            if len(body) > 15000:
+                result.setdefault("log_gaps", []).append("保存的 CI 证据片段仅包含前 15000 字符，不能作为完整日志。")
+            content = f"Run attempt: {result.get('run_attempt', 1)}\nEvidence gaps: " + str(result.get("log_gaps", [])) + "\n" + body[:15000]
+            self.add_evidence(f"ci:{run_id}", f"CI #{run_id} · {result['name']}", content, result.get("url", ""), result["head_sha"], run_attempt=result.get("run_attempt", 1))
         elif name in ("search_code", "read_code"):
             if name == "search_code":
                 result = await asyncio.to_thread(self.workspace.search, self.workspace_ref, args["query"], args["path_prefix"])
