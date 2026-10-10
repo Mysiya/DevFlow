@@ -1,0 +1,20 @@
+name: DevFlow CI diagnosis drill
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  intentional-failure:
+    name: Intentional diagnostic sample
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    steps:
+      - name: Emit labelled diagnostic failure
+        run: |
+          printf '%s\n' 'DEVFLOW_CI_DIAGNOSIS_DRILL: intentional isolated failure for log-reading verification.'
+          printf '%s\n' 'This diagnostic fixture does not run application tests. Exit code 42 is expected.'
+          printf '%s\n' '::error title=Intentional diagnostic sample::DEVFLOW_CI_DIAGNOSIS_DRILL expected exit code 42'
+          exit 42

@@ -6,6 +6,8 @@ PR 检查固定检出 PR head SHA，主分支检查固定检出触发提交。Gi
 
 查看 [Actions](https://github.com/Mysiya/DevFlow/actions)。在 DevFlow 的“连接与配置”同步看板，再选择实际 PR 编号或 Actions run ID 分析。CI 成功只说明当前流水线中的检查通过，不代表安卓实机、全部发布条件或模型回答质量已验收。
 
+`diagnosis-drill.yml` 只在手动触发时运行，名称明确标记诊断演练。唯一 job 输出 `DEVFLOW_CI_DIAGNOSIS_DRILL` 并以预定的 42 退出，用来验收真实 GitHub 失败日志读取与模型证据引用；它没有运行应用测试，不能将它报告成业务测试缺陷。该演练失败与正常 DevFlow checks 的检查结果分别记录。PR 协作分析仍只关联其当前 head SHA 的 run，不用其他提交的演练替代当前 CI。
+
 Railway 正式服务已连接 Mysiya/DevFlow 的 main，后续推送触发自动构建。该连接本身没有设置“等待 CI”，当前代码应先通过本机检查并核对 Actions，再用于正式部署；不要把服务部署成功当成 CI 已通过。后续需要平台审批或分支保护时，应单独配置并核对账号权限。
 
 参考：[GitHub 工作流语法](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax)、[Actions job 日志与固定重跑轮次](https://docs.github.com/en/rest/actions/workflow-jobs)。
