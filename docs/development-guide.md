@@ -6,9 +6,9 @@
 
 手机界面使用底部导航，保留原来的任务、仓库、知识、记录、代码、审批和评测功能。安卓工程位于 mobile/android，采用原生 HTTPS 连接页和 WebView 工作台；当前 APK 直接连接预设服务器，确认服务开启登录后进入工作台，切换服务器时才填写新地址。手机与电脑需要连接同一服务才能共享记录，关闭客户端不会取消服务器任务。JSON 导出使用系统文件选择器，模型密钥只留在服务端。
 
-最新安卓工程为 0.18.1，安装包位于 artifacts/mobile/DevFlow-0.18.1-debug.apk，也可从网页设置中的“下载安卓版 APK”取得，支持安卓 8.0 及以上。默认读取 mobile/service.json 预设地址，第一次打开直接连接登录页，后续保留会话，无需填写服务地址，账号和模型密钥不写入 APK。SDK 许可已明确同意，手机实机验收尚未完成；服务器启动、认证与外网检查单独记录，不能把 APK 构建当作后台上线。
+最新安卓工程为 0.18.2，安装包位于 artifacts/mobile/DevFlow-0.18.2-debug.apk，也可从网页设置中的“下载安卓版 APK”取得，支持安卓 8.0 及以上。默认读取 mobile/service.json 预设地址，第一次打开直接连接登录页，后续保留会话，无需填写服务地址，账号和模型密钥不写入 APK。SDK 许可已明确同意，编译、签名与正式服务连接检查已通过；手机实机操作仍需验收。
 
-当前 HTTPS 服务为 https://preview-ff00a4ca69754797.up.railway.app，已完成登录、Worker、源码同步与 APK 下载检查，DeepSeek 认证及模型列表读取通过。使用云端独立 SQLite 和关键词检索，本机历史记录与向量库未迁移。首次登录使用交付的 admin 账号和独立密码，密码只保存在私有交付文件；本次部署没有新增模型分析。维护与 VM 生命周期限制见 infra/cloud/README.md。
+当前正式 HTTPS 服务为 https://devflow-production-ef63.up.railway.app，已完成登录、Worker、源码同步与 APK 下载检查，以及真实 DeepSeek 源码、PR 和协作分析。使用云端独立 SQLite、关键词检索和持久卷，本机历史记录与向量库未迁移。首次登录使用交付的 admin 账号和独立密码，密码只保存在私有交付文件。维护说明见 infra/cloud/README.md；GitHub 自动检查与失败日志权限见 docs/ci.md。
 
 compose.mobile.yaml 与 infra/mobile/Caddyfile 提供 HTTPS 部署配置，强制启用账号认证和 Secure Cookie。外网使用需要实际服务器、域名、有效证书和已运行的 API/Worker；现有电脑的回环地址不能直接在外出手机上访问。新的 PostgreSQL 环境不会自动带入本地 SQLite 数据，需要按目标服务器单独迁移。编译和部署说明见 docs/mobile-app.md。
 

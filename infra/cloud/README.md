@@ -32,13 +32,13 @@ Railway Cloud Agent VM 用于开发预览；正式流量使用常规服务。平
 
 已在用户领取的 `pure-communication` 项目中创建常规服务 `devflow`，分配地址 https://devflow-production-ef63.up.railway.app，挂载 `/app/data` 持久卷。使用根 Dockerfile 构建，健康检查为 `/api/auth/session`，单副本、失败最多重启 10 次，关闭应用休眠。按 [卷权限说明](https://docs.railway.com/volumes)设置 `RAILWAY_RUN_UID=0`，避免默认非 root 用户无法写入挂载目录。模型密钥和管理员密码使用平台密封变量，不随源码上传。
 
-当前项目令牌可配置服务、卷、域名和变量，GitHub source connect 返回 Unauthorized；使用官方 `railway up --project ... --environment ... --service ... --detach --json` 上传已发布源码。GitHub 自动部署尚未连接，不把一次上传称作已配置自动更新。必须检查对应 deploymentId 的 `SUCCESS`，再核对公网认证、Worker、源码、APK 和实际重启后数据，才认为本次上线验收通过。
+最初项目令牌不能连接 GitHub source，使用官方 `railway up --project ... --environment ... --service ... --detach --json` 上传已发布源码。2026-10-10 后续通过已登录账号的 Railway 连接接入 Mysiya/DevFlow main，部署 `925515cb-07b9-4a22-80c5-d69644410234` 从提交 `c32c775f7b927f3fbdb6250cef7095f2d8adc00e` 构建并达到 SUCCESS。推送自动触发仍待核验，不把源码连接或手动触发构建称作自动更新已通过。每次必须核对对应 deploymentId 的 `SUCCESS` 和提交，再检查公网认证、Worker、源码与 APK。
 
 Android 0.18.2 预设正式地址。首次安装直接连接；覆盖安装仅把此前固定的预览地址迁到正式服务，自定义地址继续保留，需要在新域名重新登录。桌面历史不会自动迁入。旧预览库已做 SQLite 一致性备份，当时没有分析、会话或项目记忆记录；该备份没有导入正式卷。正式库独立初始化，已重新接入公共仓库和 README。
 
-2026-10-10 上线验收：部署 `481aea24-2e53-44b7-96ba-453b097768fa` 对应运行源码 `959722e5f47eb81c67f00e4fa69219dbc479e1c3`，平台状态为 SUCCESS。实际 Docker 构建、HTTPS 登录、未登录接口拒绝、在线 Worker 和 APK 字节校验通过。真实源码任务 `24060e3b733d41feb8699bcbc9e3ee6f` 使用 DeepSeek V4 Pro 完成，引用固定提交与行号；断开首个 SSE 事件后按编号重连，重放后续 21 个事件。调试期间的两条失败任务保留，不把它们记作成功或自动补发。
+2026-10-10 首次上线验收：部署 `481aea24-2e53-44b7-96ba-453b097768fa` 对应运行源码 `959722e5f47eb81c67f00e4fa69219dbc479e1c3`，当时平台状态为 SUCCESS。实际 Docker 构建、HTTPS 登录、未登录接口拒绝、在线 Worker 和 APK 字节校验通过。真实源码任务 `24060e3b733d41feb8699bcbc9e3ee6f` 使用 DeepSeek V4 Pro 完成，引用固定提交与行号；断开首个 SSE 事件后按编号重连，重放后续 21 个事件。调试期间的两条失败任务保留，不把它们记作成功或自动补发。
 
-随后在队列空闲时执行平台实际重启，核对请求时间之后的新进程启动日志；原会话继续有效，三条任务的结果与状态、模型用量、166 个源码文件和提交 SHA 保持一致，Worker 恢复在线，APK 可继续下载。证明在本机忽略目录 `artifacts/deploy/restart-proof-v182.json`。后端完整回归 353 项通过、1 项向量集成检查跳过，前端构建与 TypeScript 通过。此次仅验证单副本的当前部署及一次真实分析，未验收安卓实机操作、真实 PR/CI 全流程或长期可用性；云端继续使用关键词检索。
+随后在队列空闲时执行平台实际重启，核对请求时间之后的新进程启动日志；原会话继续有效，三条任务的结果与状态、模型用量、166 个源码文件和提交 SHA 保持一致，Worker 恢复在线，APK 可继续下载。证明在本机忽略目录 `artifacts/deploy/restart-proof-v182.json`。首次后端完整回归 353 项通过、1 项向量集成检查跳过，前端构建与 TypeScript 通过。后续 PR 与协作分析已使用真实 GitHub 证据和 DeepSeek 完成，CI 节点核对 PR head，详见 docs/verification.md。安卓实机操作、代表性人工质量评估和长期可用性仍需验收；云端继续使用关键词检索。
 
 ## 历史预览 VM
 

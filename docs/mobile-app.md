@@ -50,7 +50,7 @@ java -cp artifacts/android-policy-tests ServerAddressTest
 
 旧预览 VM 曾通过公网接口检查，后来仍返回平台欢迎页，现已改用 Railway 常规服务，配置 Dockerfile、持久卷、健康检查和重启策略。2026-10-10 已确认对应部署为 SUCCESS，公网登录、Worker、源码同步与 APK 下载通过；一次真实 DeepSeek V4 Pro 源码分析完成，主动断开 SSE 后按事件编号重连，完整重放后续 21 个事件。实际重启服务后，原登录会话、完成与失败记录、模型用量和 166 个源码文件保持一致。0.18.2 编译、签名、Lint、预设域名和凭据扫描已通过；安卓实机操作仍需验证。
 
-服务器使用独立 SQLite 和关键词检索，已接入 Mysiya/DevFlow 公共仓库及 README 知识库。电脑上的历史回答、记忆、知识库和 Milvus 索引没有自动迁入；电脑与手机连接此云端服务时共享云端新记录。覆盖安装仅自动替换原固定预览地址，自定义服务地址继续保留，新域名需要重新登录。GitHub 自动部署尚未连接，后续代码发布需单独上传服务。运行配置见 [云部署说明](../infra/cloud/README.md)，本次验收范围见 [验证记录](verification.md)。
+服务器使用独立 SQLite 和关键词检索，已接入 Mysiya/DevFlow 公共仓库及 README 知识库。电脑上的历史回答、记忆、知识库和 Milvus 索引没有自动迁入；电脑与手机连接此云端服务时共享云端新记录。覆盖安装仅自动替换原固定预览地址，自定义服务地址继续保留，新域名需要重新登录。GitHub Actions 已运行 PR 和主分支检查；Railway 已连接 main 并从源码构建，推送自动部署仍待核验。云端真实 PR 与发布前协作检查已完成，记录可在网页或 APK 的历史中查看。运行配置见 [云部署说明](../infra/cloud/README.md)，验收范围见 [验证记录](verification.md)。
 
 ## 自有服务器部署
 

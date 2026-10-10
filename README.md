@@ -28,7 +28,7 @@ Python + FastAPI + LangGraph + Next.js 的研发协作工作台。根据[小林 
 
 安卓客户端与手机界面：v0.18 新增底部导航、触摸布局、HTTPS 连接页和原生 JSON 保存工程，使用当前 v0.18 后端；编译、外网部署和数据迁移说明见 [手机应用指南](docs/mobile-app.md)。云平台单服务部署见 [部署说明](infra/cloud/README.md)，服务地址预置进 APK 后，首次打开直接进入登录流程。
 
-[正式 HTTPS 工作台](https://devflow-production-ef63.up.railway.app)已上线，[安卓 APK 0.18.2](https://devflow-production-ef63.up.railway.app/downloads/DevFlow-0.18.2-debug.apk)已预设该地址，沿用原签名；覆盖安装时自动迁移旧预览地址，保留自行选择的其他服务器。Railway 常规服务使用 `/app/data` 持久卷、健康检查和失败重启，已验证公网登录、一次真实 DeepSeek 源码分析、SSE 断线重连及实际重启后的会话和数据保留。账号密码单独交付，本机历史没有自动迁移。GitHub 自动部署尚未连接；手机实机验收尚未完成，当前 APK 为个人测试包。具体结果见 [验证记录](docs/verification.md)。
+[正式 HTTPS 工作台](https://devflow-production-ef63.up.railway.app)已上线，[安卓 APK 0.18.2](https://devflow-production-ef63.up.railway.app/downloads/DevFlow-0.18.2-debug.apk)已预设该地址，沿用原签名；覆盖安装时自动迁移旧预览地址，保留自行选择的其他服务器。Railway 常规服务使用 `/app/data` 持久卷、健康检查和失败重启，已验证公网登录、真实 DeepSeek 源码/PR/CI 分析、Planner/PR/CI/源码/Synthesis 协作、SSE 事件重放及实际重启后的会话和数据保留。账号密码单独交付，本机历史没有自动迁移。GitHub Actions 已检查 PR 与主分支；Railway 已连接 main 并从源码构建，推送自动部署仍待核验。手机实机验收尚未完成，当前 APK 为个人测试包。具体结果见 [验证记录](docs/verification.md)及[自动检查说明](docs/ci.md)。
 
 | 模式 | 数据来源 | 分析方式 | 配置要求 |
 | --- | --- | --- | --- |
@@ -285,7 +285,7 @@ Lite 客户端关闭空闲保活 Ping，避免 PyMilvus 默认短间隔保活触
 
 前端通过 Next.js 同源代理访问后端。后端端口变更时，在 `frontend/.env.local` 中设置 `DEVFLOW_API_URL` 并重启前端。
 
-这是本地开发版本，登录与仓库权限可选启用；尚未实现迁移管理和多机器共享代码缓存。v0.6 仅通过新增表保留旧记录，不修改原表字段。页面与独立 Worker 通过 SQL 队列解耦，支持事件重放与断线重连；Worker 中断后的任务恢复需要用户手动触发。当前只监听回环地址，团队部署仍需 HTTPS、身份配置与生产验证。
+本机开发模式默认监听回环地址，登录与仓库权限可选启用；当前正式服务已启用 HTTPS、账号认证与共享持久目录，验收结果按版本记录。尚未实现迁移管理和多机器共享代码缓存。v0.6 仅通过新增表保留旧记录，不修改原表字段。页面与独立 Worker 通过 SQL 队列解耦，支持事件重放与断线重连；Worker 中断后的任务恢复需要用户手动触发。
 
 ## Docker / PostgreSQL
 
