@@ -60,8 +60,20 @@ class ModelClient:
 
     async def analyze(self, role: str, question: str, evidence: dict, gaps: list[str] | None = None):
         facts, relations, limited = extract_source(evidence)
-        user_input = {"question": question, "evidence": evidence, "known_gaps": gaps or [], "source_numeric_facts": facts, "source_formula_relations": relations, "source_facts_limited": limited}
+        aliases = {f"E{index}": ident for index, ident in enumerate(sorted(evidence), 1)}
+        short_ids = {ident: short for short, ident in aliases.items()}
+        wire_evidence = {short: {**evidence[ident], "id": short, "source_id": ident} for short, ident in aliases.items()}
+        # Facts are derived from canonical, validated sources before wire aliases.
+        wire_facts = [{**row, "evidence_id": short_ids[row["evidence_id"]]} for row in facts]
+        wire_relations = [{**row, "evidence_id": short_ids[row["evidence_id"]]} for row in relations]
+        user_input = {"question": question, "evidence": wire_evidence, "known_gaps": gaps or [],
+                      "source_numeric_facts": wire_facts, "source_formula_relations": wire_relations,
+                      "source_facts_limited": limited, "allowed_evidence_ids": list(aliases),
+                      "citation_instruction": "finding.evidence_ids 复制 allowed_evidence_ids 中的短编号；路径、行号和 source_id 描述来源，不要拼接新的引用编号。"}
         context = provenance(self.settings, role, user_input, {})
+        context.update(evidence_ids=sorted(evidence), evidence_hash=fingerprint(evidence),
+                       citation_protocol="short-evidence-v1", evidence_aliases=aliases)
+        context["protocol_hash"] = fingerprint({"base": context["protocol_hash"], "citations": "short-evidence-v1"})
         message = await self.chat([
             {"role": "system", "content": context["system_prompt"]},
             {"role": "user", "content": json.dumps(user_input, ensure_ascii=False)},
@@ -69,6 +81,7 @@ class ModelClient:
         analysis = Analysis.model_validate_json(message.get("content") or "")
         allowed = set(evidence)
         for finding in analysis.findings:
+            finding.evidence_ids = [aliases.get(ident, ident) for ident in finding.evidence_ids]
             bad = set(finding.evidence_ids) - allowed
             if bad:
                 raise ValueError("模型引用了未提供的证据，已停止输出。")
