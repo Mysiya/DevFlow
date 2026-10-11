@@ -37,6 +37,7 @@ from .answer_evaluation_sets import router as answer_evaluation_set_router
 from .task_skills import catalog as skill_catalog, validate_selection
 from .governance import reject_credentials
 from .http_privacy import PrivateAPIResponses
+from .deployment import deployment_metadata
 
 settings = get_settings()
 
@@ -91,6 +92,11 @@ def repo_summary(repo):
 @app.get("/api/health")
 def health():
     return {"status": "ok", "version":app.version, "stage":5, "mode": settings.devflow_mode, "model": "演示规则引擎（未调用大模型）" if settings.devflow_mode == "demo" else settings.llm_model or "尚未配置", "storage": "sqlite" if settings.database_url.startswith("sqlite") else "postgresql", "retrieval": ("milvus-lite + bm25" if settings.milvus_deployment=="lite" else "milvus + bm25") if settings.retrieval_backend == "milvus" else "bm25", "external_writes": settings.devflow_mode == "live" and settings.auth_enabled and settings.github_write_enabled and bool(settings.github_token.get_secret_value())}
+
+
+@app.get("/api/admin/deployment")
+def deployment():
+    return {"version": app.version, **deployment_metadata()}
 
 
 @app.get("/api/repositories")
