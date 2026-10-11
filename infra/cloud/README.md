@@ -36,6 +36,20 @@ Railway Cloud Agent VM 用于开发预览；正式流量使用常规服务。平
 
 Android 0.18.2 预设正式地址。首次安装直接连接；覆盖安装仅把此前固定的预览地址迁到正式服务，自定义地址继续保留，需要在新域名重新登录。桌面历史不会自动迁入。旧预览库已做 SQLite 一致性备份，当时没有分析、会话或项目记忆记录；该备份没有导入正式卷。正式库独立初始化，已重新接入公共仓库和 README。
 
+## 核对服务实际运行的提交
+
+管理员登录后，`GET /api/admin/deployment` 返回平台提供的 `git_commit_sha` 和 `deployment_id`。完整 SHA 才能与发布提交比较，缺失时保持未知；该接口不是镜像源码摘要计算。正式服务器上匿名访问被拒绝，普通用户无管理员权限，响应禁止缓存。
+
+安装后端锁定依赖，并在当前进程私下设置 `DEVFLOW_ADMIN_USERNAME`、`DEVFLOW_ADMIN_PASSWORD`，再执行：
+
+```bash
+python scripts/verify-deployment.py --url https://devflow-production-ef63.up.railway.app --expected-sha 完整的40字符提交SHA
+```
+
+不要把密码写入命令参数、工作流或源码。脚本仅向指定 HTTPS Origin 登录，只有服务器报告的完整 SHA 相同且健康检查正常时才确认，退出前撤销本次会话，不调用模型。服务可访问、GitHub CI 成功和平台 deployment SUCCESS 是不同检查，应逐项核对。
+
+2026-10-11 的发布 `22d209093e71d51a827ac2fb635aef2207288982` 已实际核对运行 SHA 和部署 `13262267-44ed-4331-80f1-96f455c7b888`；[GitHub checks](https://github.com/Mysiya/DevFlow/actions/runs/38114179343) 中后端与云部署检查为 377 项通过、1 项向量实机检查跳过，前端和安卓地址策略检查成功。原四条已完成分析的结果、事件与用量回读一致，Worker 在线，原 APK 字节校验一致；这次是手动上线，不作为推送自动部署证明。账号页面启用自动部署和 Wait for CI 后，须另用新提交验证完整链路。
+
 2026-10-10 首次上线验收：部署 `481aea24-2e53-44b7-96ba-453b097768fa` 对应运行源码 `959722e5f47eb81c67f00e4fa69219dbc479e1c3`，当时平台状态为 SUCCESS。实际 Docker 构建、HTTPS 登录、未登录接口拒绝、在线 Worker 和 APK 字节校验通过。真实源码任务 `24060e3b733d41feb8699bcbc9e3ee6f` 使用 DeepSeek V4 Pro 完成，引用固定提交与行号；断开首个 SSE 事件后按编号重连，重放后续 21 个事件。调试期间的两条失败任务保留，不把它们记作成功或自动补发。
 
 随后在队列空闲时执行平台实际重启，核对请求时间之后的新进程启动日志；原会话继续有效，三条任务的结果与状态、模型用量、166 个源码文件和提交 SHA 保持一致，Worker 恢复在线，APK 可继续下载。证明在本机忽略目录 `artifacts/deploy/restart-proof-v182.json`。首次后端完整回归 353 项通过、1 项向量集成检查跳过，前端构建与 TypeScript 通过。后续 PR 与协作分析已使用真实 GitHub 证据和 DeepSeek 完成，CI 节点核对 PR head，详见 docs/verification.md。安卓实机操作、代表性人工质量评估和长期可用性仍需验收；云端继续使用关键词检索。
