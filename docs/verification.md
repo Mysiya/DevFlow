@@ -318,7 +318,13 @@
 
 ## 部署触发器排查与运行版本核验（2026-10-11）
 
-- 正式服务仍正常运行 `98c1823eca09af68a2a39613df1cfa51d52203ae`，该版本通过手动源码连接部署。只读查询目标项目、production 环境和 devflow 服务的 `deploymentTriggers`，返回空列表；尝试创建 main / Wait for CI 触发器时返回 Bad Access，没有将权限错误写成操作成功。GitHub 显示该提交 author 和 committer 均关联 Mysiya，未修改本机 Git 身份。账号页面启用触发器和真实 push 自动上线尚待完成。
+- 最初排查时正式服务运行 `98c1823eca09af68a2a39613df1cfa51d52203ae`，该版本通过手动源码连接部署。只读查询目标项目、production 环境和 devflow 服务的 `deploymentTriggers`，返回空列表；尝试创建 main / Wait for CI 触发器时返回 Bad Access，没有将权限错误写成操作成功。GitHub 显示该提交 author 和 committer 均关联 Mysiya，未修改本机 Git 身份。
 - 新增管理员部署元数据接口，仅返回格式合法的 Railway Git SHA 和部署 ID，缺失或异常为 null；沿用管理员权限和 API 禁止缓存策略。元数据由平台提供，不冒称是镜像源码摘要。新增 9 项回归，覆盖异常字符串不回显、格式与管理员/普通用户/匿名访问。
 - 新增无模型调用的 HTTPS 部署核验脚本：通过进程环境读取管理员凭据，只在服务实际报告完整目标 SHA 且健康检查正常时确认，超时或未知 SHA 均失败。6 项模拟 HTTP 检查覆盖成功、旧 SHA、缺失/空元数据、健康检查失败和登录拒绝；不会把服务能访问当成新代码已上线。
 - 本机后端与原有云启动完整回归 **371 项通过、1 项向量实机检查跳过，116.05 秒**；随后新增的部署核验脚本专项 **6 项通过**，两个执行范围分别记录。GitHub checks 现纳入 `infra/cloud`，完整云端执行结果独立核对。源码包扫描配置凭据匹配为 0，未加入本机数据。本轮没有新增模型调用或重建 APK；安卓实机及代表性回答质量仍未验收。
+
+## 自动部署授权与等待 CI 配置（2026-10-11）
+
+- 提交 `14e0c75ed9098278b7c4fc7c19ddd50f376b5af1` 的[GitHub checks 38120653341](https://github.com/Mysiya/DevFlow/actions/runs/38120653341) 成功，后端与部署隔离检查为 **377 项通过、1 项向量实机检查跳过**，前端及安卓地址策略检查成功。部署 `e997c88a-167a-420a-ba1d-90a0e438c552` 报告相同运行 SHA；四条已完成分析的结果、事件与用量保留，Worker 在线、原 APK 字节一致。该次部署由修复 source 分支配置触发，不能作为 push 自动部署证明。
+- 独立服务状态接口定位到 GitHub App `NO_INSTALLATION`；安装正确的 railway-app 并授权 Mysiya/DevFlow 后，平台确认 canEnable=true。已登录控制台随后启用自动部署，main 触发器建立；Wait for CI 先形成仅一个 Check Suites false → true 的待变更，审阅后应用。此前项目令牌修改返回 Bad Access，未绕过账号权限或复制电脑 Git 凭据。
+- 下一次验证推送只包含这些部署文档的真实改动。推送后不手动部署，用同一完整 SHA 关联 GitHub push 检查、Railway 部署和管理员运行版本；实际结果保存在本机忽略目录，尚未观察到的链路不预先记为成功。本轮不调用模型、不改变 Android 安装包。

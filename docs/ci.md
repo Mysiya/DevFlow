@@ -10,7 +10,9 @@ PR 检查固定检出 PR head SHA，主分支检查固定检出触发提交。Gi
 
 CI 证据固定读取观察到的 `run_attempt`，保留 job ID、链接及各步骤状态。签名日志下载失败时保留这些证据并记录缺口，不使整次查询失败，也不回传含签名的异常 URL。最多读取当前轮次 100 个 job 和前三个失败 job 日志，每份最多 512 KB，合并最多 25000 字符；保存给模型的 CI 证据正文最多 15000 字符，各层截断均明确提示。GitHub 凭据只发送给官方 API，下载签名日志的独立客户端不携带该凭据。正式服务未设置 GitHub Token 时，可查询公开 job 和步骤；若平台拒绝匿名下载日志，结果必须保留日志缺口，不能报告已确认根因。
 
-Railway 正式服务已连接 Mysiya/DevFlow 的 main，从 GitHub 构建和手动上线已通过。2026-10-11 查询目标环境和服务的 `deploymentTriggers`，结果为空；创建 main 触发器及开启 Wait for CI 的请求返回 Bad Access。源码连接成功没有建立推送自动部署，需要在账号页面的服务 Settings → Source 启用，并完成 Railway GitHub App 的仓库访问授权。启用后仍须用真实新提交核对 CI、部署记录及运行版本；不能将手动构建当作自动部署证明。参见 [Railway 自动部署要求](https://docs.railway.com/deployments/github-autodeploys)。
+Railway 正式服务连接 Mysiya/DevFlow 的 main。源码连接、GitHub App 仓库授权、Auto Deploy 和 Wait for CI 分别核对：`serviceInstanceAutoDeployStatus` 的 enabled 表示是否启用，canEnable 与 reason 表示授权条件；目标服务的 `deploymentTriggers` 还须匹配仓库、环境、main 分支和 `checkSuites=true`。账号控制台中勾选 Wait for CI 后若出现“Apply change”，须先审阅并应用待变更，不能把勾选状态当成已保存。参见 [Railway 自动部署要求](https://docs.railway.com/deployments/github-autodeploys)。
+
+2026-10-11 排查时，服务级状态曾返回 `enabled=false`、`canEnable=false`、`reason=NO_INSTALLATION`，项目令牌启用请求返回 Bad Access。用户安装[官方 Railway App](https://github.com/apps/railway-app/installations/new)并授权 DevFlow 后，canEnable 恢复为 true；通过已登录控制台启用自动部署，并审阅、应用仅将 Check Suites 从 false 改为 true 的配置。验收另用实际文件改动的新提交，观察 CI 期间的 WAITING、通过后的部署记录，再核对运行完整 SHA。配置变更触发的构建单独记录，不计为推送自动部署证明；失败或未观察到的环节保留为未通过。
 
 管理员登录后可读取 `GET /api/admin/deployment` 的 `git_commit_sha` 与 `deployment_id`，只返回格式合法的平台提交 SHA 和部署 ID，缺失或异常均为 null；它们是平台提供的元数据，不是重新计算镜像源码摘要。启用登录的服务器上，匿名访问返回 401，普通用户返回 403，响应禁止缓存。`scripts/verify-deployment.py --url HTTPS服务地址 --expected-sha 完整提交SHA` 使用进程环境中的 `DEVFLOW_ADMIN_USERNAME`、`DEVFLOW_ADMIN_PASSWORD` 登录，只有服务报告的完整 SHA 相同且健康检查正常才输出 verified。账号密码不要写进命令参数或提交仓库；脚本不调用模型，退出前撤销自己的登录会话。参考 [Railway 提供的变量](https://docs.railway.com/variables/reference)。
 
