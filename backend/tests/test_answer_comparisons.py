@@ -62,7 +62,7 @@ def test_two_prompts_same_input_compare_export_and_no_model_spoof(client,monkeyp
     exported=client.get(root+f'/answer-comparisons/export?left={ids[0]}&right={ids[1]}')
     assert 'attachment' in exported.headers['content-disposition'] and exported.json()==data
     prompts=client.get(root+'/analysis-prompts').json()['prompts']
-    assert [p['id'] for p in prompts]==['baseline-v1','evidence-first-v2']
+    assert [p['id'] for p in prompts]==['baseline-v1','evidence-first-v2','evidence-boundaries-v3']
     assert len(client.get(root+'/answer-comparisons/runs').json()['runs'])==2
     with SessionLocal() as db:
         assert [db.get(AgentRun,i).result for i in ids]==before

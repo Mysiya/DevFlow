@@ -15,6 +15,7 @@ import {
   Code2,
   Command,
   Copy,
+  Download,
   ExternalLink,
   FileText,
   GitBranch,
@@ -166,7 +167,7 @@ export default function Home() {
   const [toast, setToast] = useState("");
   const [question, setQuestion] = useState("");
   const [task, setTask] = useState<Task>("chat");
-  const [promptId,setPromptId] = useState("baseline-v1");
+  const [promptId,setPromptId] = useState("evidence-boundaries-v3");
   const [selectedSkill,setSelectedSkill] = useState<TaskSkill|null>(null);
   const [skillTarget,setSkillTarget] = useState("");
   useEffect(()=>{setSelectedSkill(null);setSkillTarget("");},[repositoryId]);
@@ -1550,6 +1551,14 @@ export default function Home() {
                         刷新
                       </button>
                     </div>
+                    {repositoryId && runs.some(run => run.status === "completed") && (
+                      <div className="governance-actions">
+                        <a className="button secondary" href={`/api/repositories/${repositoryId}/answer-reviews/export`}>
+                          <Download size={16} />导出回答 JSON
+                        </a>
+                        <p className="small-muted">最近 30 条已完成分析，包含原回答、引用和已有评审。手机点击后选择保存位置。</p>
+                      </div>
+                    )}
                     {runs.length ? (
                       <div className="history-table">
                         <div className="history-row table-labels">
